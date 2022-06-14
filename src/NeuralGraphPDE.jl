@@ -1,9 +1,10 @@
 module NeuralGraphPDE
 
-using GraphNeuralNetworks, Lux
+using Lux, GraphNeuralNetworks
+using Lux: AbstractExplicitContainerLayer, AbstractExplicitLayer
+import GraphNeuralNetworks: propagate, apply_edges
 
 include("gnn.jl")
 include("msgpass.jl")
 
-export apply_edges, propagate
 end
