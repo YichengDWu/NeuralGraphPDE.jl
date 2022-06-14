@@ -2,5 +2,5 @@ using NeuralGraphPDE
 using Test
 
 @testset "NeuralGraphPDE.jl" begin
-    # Write your tests here.
+    @test foo(0)<1E-4
 end
