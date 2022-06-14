@@ -4,7 +4,6 @@ using GraphNeuralNetworks, Lux
 
 include("gnn.jl")
 include("msgpass.jl")
-# Write your package code here.
 
-export foo
+export apply_edges, propagate
 end
