@@ -1,10 +1,10 @@
 module NeuralGraphPDE
 
-# Write your package code here.
+using GraphNeuralNetworks, Lux
 
-function foo(μ = 1., σ = 2.)
-    return 0
-end
+include("gnn.jl")
+include("msgpass.jl")
+# Write your package code here.
 
 export foo
 end
