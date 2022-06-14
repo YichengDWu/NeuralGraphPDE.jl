@@ -3,6 +3,10 @@ uuid = "dc0c328b-2f26-4c4e-a741-3d78bb01adf9"
 authors = ["MilkshakeForReal <yicheng.wu@ucalgary.ca> and contributors"]
 version = "0.1.0"
 
+[deps]
+DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
+Lux = "b2108857-7c20-44ae-9111-449ecde12c47"
+
 [compat]
 julia = "1.7"
 
