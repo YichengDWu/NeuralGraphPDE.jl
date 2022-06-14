@@ -1,5 +1,3 @@
-import GraphNeuralNetworks: propagate, apply_edges
-
 """
     apply_edges(f, g, xi, xj, e, ps, st)
     apply_edges(f, g, ps, st; [xi, xj, e])
