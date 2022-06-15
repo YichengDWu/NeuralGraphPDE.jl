@@ -11,9 +11,6 @@ apply_edges(f, g::GNNGraph, ps::NamedTuple, st::NamedTuple; xi=nothing, xj=nothi
     apply_edges(f, g, xi, xj, e, ps, st)
 
 function apply_edges(f, g::GNNGraph, xi, xj, e, ps, st)
-    check_num_nodes(g, xi)
-    check_num_nodes(g, xj)
-    check_num_edges(g, e)
     s, t = edge_index(g)
     xi = GNNGraphs._gather(xi, t)   # size: (D, num_nodes) -> (D, num_edges)
     xj = GNNGraphs._gather(xj, s)
