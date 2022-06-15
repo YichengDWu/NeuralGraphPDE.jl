@@ -16,10 +16,14 @@ makedocs(;
     ),
     pages=[
         "Home" => "index.md",
+        "Tutorials" => 
+                [
+                    "Introduction" => "tutorials/introduction.md",
+                ],
         "API Reference" => 
             [
-                "Message Passing" => "api/messagepassing.md"
-            ]
+                "Message Passing" => "api/messagepassing.md",
+            ],
     ],
 )
 
