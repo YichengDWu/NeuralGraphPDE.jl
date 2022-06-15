@@ -22,7 +22,7 @@ makedocs(;
                 ],
         "API Reference" => 
             [
-                "layers" => "api/layers.md"
+                "layers" => "api/layers.md",
                 "Message Passing" => "api/messagepassing.md",
             ],
     ],
