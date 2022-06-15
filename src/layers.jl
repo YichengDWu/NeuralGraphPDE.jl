@@ -1,4 +1,7 @@
-struct GNNLayer <:
+abstract type ExplicitGNNLayer <: AbstractExplicitLayer end
+
+#=
+struct EdgeConv <: ExplicitGNNLaye
         AbstractExplicitContainerLayer{(:ϕ,:ψ)}
     ϕ::AbstractExplicitLayer
     ψ::AbstractExplicitLayer
@@ -11,3 +14,4 @@ function (gnn::GNNLayer)(g:: NTuple{2,AbstractVector{T}},
         return gnn.ϕ(cat(u,x),ps,st) # from j to i
     end    
 end
+=#
