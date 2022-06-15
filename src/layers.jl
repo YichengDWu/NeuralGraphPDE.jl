@@ -1,17 +1,25 @@
-abstract type ExplicitGNNLayer <: AbstractExplicitLayer end
-
-#=
-struct EdgeConv <: ExplicitGNNLaye
-        AbstractExplicitContainerLayer{(:ϕ,:ψ)}
-    ϕ::AbstractExplicitLayer
-    ψ::AbstractExplicitLayer
+struct ExplicitEdgeConv{M<:AbstractExplicitLayer} <:
+        AbstractExplicitContainerLayer{(:ϕ,)}
+    ϕ::M
+    aggr
 end
 
-function (gnn::GNNLayer)(g:: NTuple{2,AbstractVector{T}},
-                         u::AbstractArray, x::AbstractArray,
-                         ps::NamedTuple,st::NamedTuple) where {T<:Integer}
-    function message(u,x,ps,st)
-        return gnn.ϕ(cat(u,x),ps,st) # from j to i
+ExplicitEdgeConv(ϕ; aggr = mean) = ExplicitEdgeConv(ϕ, aggr)
+
+function (l::ExplicitEdgeConv)(g:: GNNGraph,
+                               ndata::AbstractArray, edata::AbstractArray,
+                               ps::NamedTuple,st::NamedTuple) 
+    function message(xi, xj, e, ps, st)
+        return l.ϕ(cat(xi, xj, e, dims = 1), ps, st) 
     end    
+    return propagate(message, g, l.aggr, ps, st, xi = ndata, xj = ndata, e = edata)
 end
-=#
+
+function (l::ExplicitEdgeConv)(g:: GNNGraph,
+                               ndata::NamedTuple, edata::AbstractArray,
+                               ps::NamedTuple,st::NamedTuple) 
+    function message(xi,xj, e, ps, st)
+        return l.ϕ(cat(values(xi)..., values(xj)..., e, dims = 1), ps, st) 
+    end    
+    return propagate(message, g, l.aggr, ps, st, xi = ndata, xj = ndata, e = edata)
+end

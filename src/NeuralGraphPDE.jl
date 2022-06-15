@@ -3,8 +3,10 @@ module NeuralGraphPDE
 using Lux, GraphNeuralNetworks
 using Lux: AbstractExplicitContainerLayer, AbstractExplicitLayer
 import GraphNeuralNetworks: propagate, apply_edges
+using Statistics: mean
 
-include("layers.jl")
+include("utils.jl")
 include("msgpass.jl")
+include("layers.jl")
 
 end
