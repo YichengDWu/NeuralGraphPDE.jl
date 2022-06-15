@@ -18,7 +18,7 @@ makedocs(;
         "Home" => "index.md",
         "API Reference" => 
             [
-                "Message Passing" => "api/messagepassing.md",
+                "Message Passing" => "api/messagepassing.md"
             ]
     ],
 )
