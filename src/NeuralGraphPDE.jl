@@ -9,4 +9,5 @@ include("utils.jl")
 include("msgpass.jl")
 include("layers.jl")
 
+export ExplicitEdgeConv
 end
