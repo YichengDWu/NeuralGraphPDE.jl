@@ -18,7 +18,7 @@ makedocs(;
         "Home" => "index.md",
         "Tutorials" => 
                 [
-                    "Introduction" => "tutorials/introduction.md",
+                    "Neural Graph Ordinary Differential Equations" => "tutorials/graph_node.md",
                 ],
         "API Reference" => 
             [
