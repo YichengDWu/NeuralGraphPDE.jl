@@ -12,7 +12,7 @@ Order = [:type, :function]
 Pages   = ["messagepassing.md"]
 ```
 
-## Interface
+## Docs
 
 ```@docs
 apply_edges
