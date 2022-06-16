@@ -1,8 +1,5 @@
 """
     ExplicitEdgeConv(ϕ; aggr=max)
-```math
-\mathbf{x}_i' = \square_{j \in N(i)}\, \phi([\mathbf{x}_i; \mathbf{x}_j - \mathbf{x}_i])
-```
 # Arguments
 - `ϕ`: A neural network. 
 - `aggr`: Aggregation operator for the incoming messages (e.g. `+`, `*`, `max`, `min`, and `mean`).
