@@ -6,6 +6,8 @@ using Lux: parameterlength
 using Test
 
 @testset "layers" begin
+    rng = Random.default_rng()
+    Random.seed!(rng, 0)
     @testset "basic" begin
         @testset "WithStaticGraph" begin
             s = [1,1,2,3]
@@ -15,10 +17,7 @@ using Test
 
             model = ExplicitGCNConv(3 => 5) 
             wg = WithStaticGraph(model, g)
-            @test parameterlength(wg.model) == parameterlength(model)
-
-            rng = Random.default_rng()
-            Random.seed!(rng, 0)
+            @test parameterlength(wg) == parameterlength(model)
 
             ps, st = Lux.setup(rng, model)
             @test model(g, x, ps, st) == wg(x, ps, st)
@@ -31,9 +30,6 @@ using Test
             g = GNNGraph(s, t)
             x = randn(3, g.num_nodes)
             l = ExplicitGCNConv(3 => 5) 
-
-            rng = Random.default_rng()
-            Random.seed!(rng, 0)
 
             ps, st = Lux.setup(rng, l)
             @test st == (;)
