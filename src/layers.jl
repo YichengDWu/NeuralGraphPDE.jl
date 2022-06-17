@@ -25,6 +25,10 @@ end
 
 (w::WithStaticGraph)(g::GNNGraph, x...;kws...) = w.model(g, x...;kws...)
 (w::WithStaticGraph)(x...;kws...) = w.model(w.g, x...;kws...)
+
+function Base.show(io::IO, w::WithStaticGraph)
+    return print(io, "WithStaticGraph(", w.model, ")")
+end
 """
     ExplicitEdgeConv(ϕ; aggr=max)
 # Arguments
