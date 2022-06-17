@@ -112,17 +112,21 @@ end
 
 ## Training
 ```@example train
-model, ps, st = create_model()
+function train()
+    model, ps, st = create_model()
 
-# Optimizer
-opt = Optimisers.ADAM(0.01f0)
-st_opt = Optimisers.setup(opt,ps)
+    # Optimizer
+    opt = Optimisers.ADAM(0.01f0)
+    st_opt = Optimisers.setup(opt,ps)
 
-# Training Loop
-for epoch in 1:epochs
-    (l,st), back = pullback(p->loss(X, ytrain, train_mask, model, p, st),ps)
-    gs = back((one(l), nothing))[1]
-    st_opt, ps = Optimisers.update(st_opt, ps, gs)
-    @show eval_loss_accuracy(X, y, train_mask, model, ps, st)
+    # Training Loop
+    for epoch in 1:epochs
+        (l,st), back = pullback(p->loss(X, ytrain, train_mask, model, p, st),ps)
+        gs = back((one(l), nothing))[1]
+        st_opt, ps = Optimisers.update(st_opt, ps, gs)
+        @show eval_loss_accuracy(X, y, train_mask, model, ps, st)
+    end
 end
+
+train()
 ```
