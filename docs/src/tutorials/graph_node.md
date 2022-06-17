@@ -5,18 +5,18 @@ This tutorial is adapted from [SciMLSensitivity](https://sensitivity.sciml.ai/de
 ```julia
 using GraphNeuralNetworks, NeuralGraphPDE, DifferentialEquations
 using Lux, NNlib, Optimisers, Zygote, Random, ComponentArrays
-# onecold
+using DiffEqSensitivity
 using Statistics: mean
 using MLDatasets: Cora
 using CUDA
 CUDA.allowscalar(false)
-```
 device = CUDA.functional() ? gpu : cpu
+```
 
 ## LOAD DATA
 ```julia
 onehotbatch(data::CuArray,labels)= cu(labels).==reshape(data, 1,size(data)...)
-onecold(y) =  map(Base.Fix1(findfirst, isodd),eachcol(y))
+onecold(y) =  map(argmax,eachcol(y))
 
 dataset = Cora()
 classes = dataset.metadata["classes"]
@@ -99,11 +99,11 @@ logitcrossentropy(ŷ, y) = mean(-sum(y .* logsoftmax(ŷ); dims=1))
 
 function loss(x, y, mask, model, ps, st)
     ŷ, st = model(x, ps, st)
-    return logitcrossentropy(ŷ[:,mask], y)
+    return logitcrossentropy(ŷ[:,mask], y), st
 end
 
 function eval_loss_accuracy(X, y, mask, model, ps, st)
-    ŷ, st = model(x, ps, st)
+    ŷ, _ = model(X, ps, st)
     l = logitcrossentropy(ŷ[:,mask], y[:,mask])
     acc = mean(onecold(ŷ[:,mask]) .== onecold(y[:,mask]))
     return (loss = round(l, digits=4), acc = round(acc*100, digits=2))
@@ -120,7 +120,8 @@ st_opt = Optimisers.setup(opt,ps)
 
 # Training Loop
 for epoch in 1:epochs
-    gs = Zygote.gradient(p->loss(X, ytrain, train_mask, model, ps, st),ps)[1]
+    (l,st), back = pullback(p->loss(X, ytrain, train_mask, model, p, st),ps)
+    gs = back((one(l), nothing))[1]
     st_opt, ps = Optimisers.update(st_opt, ps, gs)
     @show eval_loss_accuracy(X, y, train_mask, model, ps, st)
 end
