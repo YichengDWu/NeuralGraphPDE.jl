@@ -50,19 +50,50 @@ end
 
 
 """
-    ExplicitGCNConv
+    ExplicitGCNConv()
 
 Same as the one in GraphNeuralNetworks.jl but with exiplicit paramters
 
 ## Arguments
-
+    
     - `in_chs`: 
     - `out_chs`:
     - `activation`:
-    - `add_self_loops`:
-    - `use_edge_weight`:  
+    - `add_self_loops`: 
+    - `use_edge_weight`:
+    
+## Examples
+
+```julia
+# create data
+s = [1,1,2,3]
+t = [2,3,1,1]
+g = GNNGraph(s, t)
+x = randn(3, g.num_nodes)
+
+# create layer
+l = ExplicitGCNConv(3 => 5) 
+
+# setup layer
+rng = Random.default_rng()
+Random.seed!(rng, 0)
+
+ps, st = Lux.setup(rng, l)
+
+# forward pass
+y = l(g, x, ps, st)       # size:  5 × num_nodes
+
+# convolution with edge weights
+w = [1.1, 0.1, 2.3, 0.5]
+y = l(g, x, ps, st, w)
+
+# Edge weights can also be embedded in the graph.
+g = GNNGraph(s, t, w)
+l = ExplicitGCNConv(3 => 5, use_edge_weight=true) 
+y = l(g, x, ps, st) # same as l(g, x, ps, st, w) 
+```
 """
-struct ExplicitGCNConv{F1,F2,F3,bias} <: AbstractExplicitLayer
+struct ExplicitGCNConv{bias,F1,F2,F3} <: AbstractExplicitLayer
     in_chs::Int
     out_chs::Int
     activation::F1
@@ -78,23 +109,6 @@ function Base.show(io::IO, l::ExplicitGCNConv)
     print(io, ")")
 end
 
-function ExplicitGCNConv(in_chs::Int, out_chs::Int, activation = identity;
-                         init_weight=glorot_normal, init_bias=zeros32,
-                         bias::Bool=true, add_self_loops::Bool=true, use_edge_weight::Bool=false) 
-    activation = NNlib.fast_act(activation)
-    return ExplicitGCNConv{typeof(activation),typeof(init_weight), typeof(init_bias),bias}(in_chs, out_chs, activation, 
-                                                                                           init_weight, init_bias, 
-                                                                                  add_self_loops, use_edge_weight)
-end
-
-function ExplicitGCNConv(ch::Pair{Int,Int}, activation=identity;
-                         init_weight=glorot_uniform, init_bias = zeros32,
-                         bias::Bool=true, add_self_loops=true, use_edge_weight=false)
-    return ExplicitGCNConv(first(ch), last(ch), activation, 
-                           init_weight = init_weight, init_bias = init_bias,
-                           bias = bias, add_self_loops = add_self_loops, use_edge_weight=use_edge_weight)
-end
-
 function initialparameters(rng::AbstractRNG, d::ExplicitGCNConv{bias}) where {bias}
     if bias
         return (weight=d.init_weight(rng, d.out_chs, d.in_chs),
@@ -107,10 +121,25 @@ end
 function parameterlength(d::ExplicitGCNConv{bias}) where {bias}
     return bias ? d.out_chs * (d.in_chs + 1) : d.out_chs * d.in_chs
 end
+
 statelength(d::ExplicitGCNConv) = 0
 
+function ExplicitGCNConv(in_chs::Int, out_chs::Int, activation = identity;
+                         init_weight=glorot_normal, init_bias=zeros32,
+                         bias::Bool=true, add_self_loops::Bool=true, use_edge_weight::Bool=false) 
+    activation = NNlib.fast_act(activation)
+    return ExplicitGCNConv{bias, typeof(activation), typeof(init_weight), typeof(init_bias)}(in_chs, out_chs, activation, 
+                                                                                             init_weight, init_bias, 
+                                                                                             add_self_loops, use_edge_weight)
+end
 
-
+function ExplicitGCNConv(ch::Pair{Int,Int}, activation=identity;
+                         init_weight=glorot_uniform, init_bias = zeros32,
+                         bias::Bool=true, add_self_loops=true, use_edge_weight=false)
+    return ExplicitGCNConv(first(ch), last(ch), activation, 
+                           init_weight = init_weight, init_bias = init_bias,
+                           bias = bias, add_self_loops = add_self_loops, use_edge_weight=use_edge_weight)
+end
 
 function (l::ExplicitGCNConv)(g::GNNGraph, x::AbstractMatrix{T}, ps, st:: NamedTuple, edge_weight::EW=nothing) where 
     {T, EW<:Union{Nothing,AbstractVector}}
@@ -149,7 +178,7 @@ function (l::ExplicitGCNConv)(g::GNNGraph, x::AbstractMatrix{T}, ps, st:: NamedT
     if Dout >= Din
         x = ps.weight * x
     end
-    return ps.activation.(x .+ ps.bias), st
+    return l.activation.(x .+ ps.bias), st
 end
 
 function (l::ExplicitGCNConv)(g::GNNGraph{<:ADJMAT_T}, x::AbstractMatrix, ps, st::NamedTuple, edge_weight::AbstractVector)
