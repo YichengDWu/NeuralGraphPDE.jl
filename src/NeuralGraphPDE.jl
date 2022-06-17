@@ -8,10 +8,10 @@ using Random
 using Statistics: mean
 
 import GraphNeuralNetworks: propagate, apply_edges
-import Lux: initialparameters
+import Lux: initialparameters, parameterlength, statelength
 include("utils.jl")
 include("msgpass.jl")
 include("layers.jl")
 
-export ExplicitEdgeConv, ExplicitGCNConv
+export ExplicitEdgeConv, ExplicitGCNConv, WithStaticGraph
 end

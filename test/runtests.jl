@@ -2,9 +2,28 @@ using NeuralGraphPDE
 using GraphNeuralNetworks
 using Random
 using Lux
+using Lux: parameterlength
 using Test
 
 @testset "layers" begin
+    @testset "basic" begin
+        @testset "WithStaticGraph" begin
+            s = [1,1,2,3]
+            t = [2,3,1,1]
+            g = GNNGraph(s, t)
+            x = randn(3, g.num_nodes)
+
+            model = ExplicitGCNConv(3 => 5) 
+            wg = WithStaticGraph(model, g)
+            @test parameterlength(wg.model) == parameterlength(model)
+
+            rng = Random.default_rng()
+            Random.seed!(rng, 0)
+
+            ps, st = Lux.setup(rng, model)
+            @test model(g, x, ps, st) == wg(x, ps, st)
+        end
+    end
     @testset "conv" begin
         @testset "gcn" begin
             s = [1,1,2,3]
