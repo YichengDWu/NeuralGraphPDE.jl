@@ -80,16 +80,20 @@ function eval_loss_accuracy(X, y, mask, model, ps, st)
     l = logitcrossentropy(ŷ[:,mask], y[:,mask])
     acc = mean(onecold(ŷ[:,mask]) .== onecold(y[:,mask]))
     return (loss = round(l, digits=4), acc = round(acc*100, digits=2))
-end</code></pre><h2 id="Training"><a class="docs-heading-anchor" href="#Training">Training</a><a id="Training-1"></a><a class="docs-heading-anchor-permalink" href="#Training" title="Permalink"></a></h2><pre><code class="language- hljs">model, ps, st = create_model()
+end</code></pre><h2 id="Training"><a class="docs-heading-anchor" href="#Training">Training</a><a id="Training-1"></a><a class="docs-heading-anchor-permalink" href="#Training" title="Permalink"></a></h2><pre><code class="language- hljs">function train()
+    model, ps, st = create_model()
 
-# Optimizer
-opt = Optimisers.ADAM(0.01f0)
-st_opt = Optimisers.setup(opt,ps)
+    # Optimizer
+    opt = Optimisers.ADAM(0.01f0)
+    st_opt = Optimisers.setup(opt,ps)
 
-# Training Loop
-for epoch in 1:epochs
-    (l,st), back = pullback(p-&gt;loss(X, ytrain, train_mask, model, p, st),ps)
-    gs = back((one(l), nothing))[1]
-    st_opt, ps = Optimisers.update(st_opt, ps, gs)
-    @show eval_loss_accuracy(X, y, train_mask, model, ps, st)
-end</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../">« Home</a><a class="docs-footer-nextpage" href="../../api/layers/">layers »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.19 on <span class="colophon-date" title="Friday 17 June 2022 21:52">Friday 17 June 2022</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+    # Training Loop
+    for epoch in 1:epochs
+        (l,st), back = pullback(p-&gt;loss(X, ytrain, train_mask, model, p, st),ps)
+        gs = back((one(l), nothing))[1]
+        st_opt, ps = Optimisers.update(st_opt, ps, gs)
+        @show eval_loss_accuracy(X, y, train_mask, model, ps, st)
+    end
+end
+
+train()</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../">« Home</a><a class="docs-footer-nextpage" href="../../api/layers/">layers »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.19 on <span class="colophon-date" title="Friday 17 June 2022 22:05">Friday 17 June 2022</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
