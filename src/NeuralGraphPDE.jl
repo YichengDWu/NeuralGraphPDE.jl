@@ -2,9 +2,8 @@ module NeuralGraphPDE
 
 using Lux, GraphNeuralNetworks, NNlib
 using Lux: AbstractExplicitContainerLayer, AbstractExplicitLayer, glorot_normal, glorot_uniform,
-           ones32, zeros32
+           ones32, zeros32, AbstractRNG
 using GraphNeuralNetworks: ADJMAT_T
-using Random: AbstractRNG
 using Statistics: mean
 
 import GraphNeuralNetworks: propagate, apply_edges
