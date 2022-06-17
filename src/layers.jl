@@ -1,4 +1,31 @@
 """
+    WithStaticGraph(model,g)
+
+A wrapper for `model`, assuming the graph is static and nontrainable.
+
+# Arguments
+
+- `model`: A function that takes a graph.
+- `g`: A graph.
+
+# Examples
+```
+s = [1,1,2,3]
+t = [2,3,1,1]
+g = GNNGraph(s, t)
+model = ExplicitGCNConv(3 => 5)
+wg = WithStaticGraph(model, g)
+```
+"""
+struct WithStaticGraph{M<:AbstractExplicitLayer,G<:GNNGraph} <:
+                    AbstractExplicitContainerLayer{(model,)}
+    model: M
+    g: G
+end
+
+(w::WithStaticGraph)(g::GNNGraph, x...;kws...) = w.model(g, x...;kws...)
+(w::WithStaticGraph)(x...;kws...) = w.model(w.g, x...;kws...)
+"""
     ExplicitEdgeConv(ϕ; aggr=max)
 # Arguments
 - `ϕ`: A neural network. 
@@ -54,15 +81,15 @@ end
 
 Same as the one in GraphNeuralNetworks.jl but with exiplicit paramters
 
-## Arguments
+# Arguments
     
-    - `in_chs`: 
-    - `out_chs`:
-    - `activation`:
-    - `add_self_loops`: 
-    - `use_edge_weight`:
+- `in_chs`: 
+- `out_chs`:
+- `activation`:
+- `add_self_loops`: 
+- `use_edge_weight`:
     
-## Examples
+# Examples
 
 ```julia
 # create data
