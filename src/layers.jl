@@ -18,7 +18,7 @@ wg = WithStaticGraph(model, g)
 ```
 """
 struct WithStaticGraph{M<:AbstractExplicitLayer,G<:GNNGraph} <:
-                    AbstractExplicitContainerLayer{(model,)}
+        AbstractExplicitContainerLayer{(:model,)}
     model: M
     g: G
 end
