@@ -49,3 +49,110 @@ function (l::ExplicitEdgeConv)(g:: GNNGraph,
 end
 
 
+"""
+    ExplicitGCNConv
+
+Same as the one in GraphNeuralNetworks.jl but with exiplicit paramters
+
+## Arguments
+
+    - `in_chs`: 
+    - `out_chs`:
+    - `activation`:
+    - `add_self_loops`:
+    - `use_edge_weight`:  
+"""
+struct ExplicitGCNConv{F1,F2,F3,bias} <: AbstractExplicitLayer
+    in_chs::Int
+    out_chs::Int
+    activation::F1
+    init_weight::F2
+    init_bias::F3
+    add_self_loops::Bool
+    use_edge_weight::Bool
+end
+
+function Base.show(io::IO, l::ExplicitGCNConv)
+    print(io, "ExplicitGCNConv($(l.in_chs) => $(l.out_chs)")
+    (l.activation == identity) || print(io, ", ", l.activation)
+    print(io, ")")
+end
+
+function ExplicitGCNConv(in_chs::Int, out_chs::Int, activation = identity;
+                         init_weight=glorot_normal, init_bias=zeros32,
+                         bias::Bool=true, add_self_loops::Bool=true, use_edge_weight::Bool=false) 
+    activation = NNlib.fast_act(activation)
+    return ExplicitGCNConv{typeof(activation),typeof(init_weight), typeof(init_bias),bias}(in_chs, out_chs, activation, 
+                                                                                           init_weight, init_bias, 
+                                                                                  add_self_loops, use_edge_weight)
+end
+
+function ExplicitGCNConv(ch::Pair{Int,Int}, activation=identity;
+                         init_weight=glorot_uniform, init_bias = zeros32,
+                         bias::Bool=true, add_self_loops=true, use_edge_weight=false)
+    return ExplicitGCNConv(first(ch), last(ch), activation, 
+                           init_weight = init_weight, init_bias = init_bias,
+                           bias = bias, add_self_loops = add_self_loops, use_edge_weight=use_edge_weight)
+end
+
+function initialparameters(rng::AbstractRNG, d::ExplicitGCNConv{bias}) where {bias}
+    if bias
+        return (weight=d.init_weight(rng, d.out_chs, d.in_chs),
+                bias=d.init_bias(rng, d.out_chs, 1))
+    else
+        return (weight=d.init_weight(rng, d.out_chs, d.in_chs),)
+    end
+end
+
+function parameterlength(d::ExplicitGCNConv{bias}) where {bias}
+    return bias ? d.out_chs * (d.in_chs + 1) : d.out_chs * d.in_chs
+end
+statelength(d::ExplicitGCNConv) = 0
+
+
+
+
+function (l::ExplicitGCNConv)(g::GNNGraph, x::AbstractMatrix{T}, ps, st:: NamedTuple, edge_weight::EW=nothing) where 
+    {T, EW<:Union{Nothing,AbstractVector}}
+    
+    @assert !(g isa GNNGraph{<:ADJMAT_T} && edge_weight !== nothing) "Providing external edge_weight is not yet supported for adjacency matrix graphs"
+
+    if edge_weight !== nothing
+        @assert length(edge_weight) == g.num_edges "Wrong number of edge weights (expected $(g.num_edges) but given $(length(edge_weight)))" 
+    end
+
+    if l.add_self_loops
+        g = add_self_loops(g)
+        if edge_weight !== nothing
+            # Pad weights with ones
+            # TODO for ADJMAT_T the new edges are not generally at the end
+            edge_weight = [edge_weight; fill!(similar(edge_weight, g.num_nodes), 1)]
+            @assert length(edge_weight) == g.num_edges
+        end
+    end
+    Dout, Din = l.out_chs, l.in_chs 
+    if Dout < Din
+        # multiply before convolution if it is more convenient, otherwise multiply after
+        x = ps.weight * x
+    end
+    d = degree(g, T; dir=:in, edge_weight)
+    c = 1 ./ sqrt.(d)
+    x = x .* c'
+    if edge_weight !== nothing
+        x = propagate(e_mul_xj, g, +, xj=x, e=edge_weight)
+    elseif l.use_edge_weight        
+        x = propagate(w_mul_xj, g, +, xj=x)
+    else
+        x = propagate(copy_xj, g, +, xj=x)
+    end
+    x = x .* c'
+    if Dout >= Din
+        x = ps.weight * x
+    end
+    return ps.activation.(x .+ ps.bias), st
+end
+
+function (l::ExplicitGCNConv)(g::GNNGraph{<:ADJMAT_T}, x::AbstractMatrix, ps, st::NamedTuple, edge_weight::AbstractVector)
+    g = GNNGraph(edge_index(g)...; g.num_nodes)  # convert to COO
+    return l(g, x, ps, st, edge_weight)
+end
