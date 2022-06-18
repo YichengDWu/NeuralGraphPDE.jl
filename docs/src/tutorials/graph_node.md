@@ -13,7 +13,7 @@ CUDA.allowscalar(false)
 device = CUDA.functional() ? gpu : cpu
 ```
 
-## LOAD DATA
+## Load data
 ```julia
 onehotbatch(data::CuArray,labels)= cu(labels).==reshape(data, 1,size(data)...)
 onecold(y) =  map(argmax,eachcol(y))
@@ -27,7 +27,7 @@ y = onehotbatch(g.ndata.targets, classes) # a dense matrix is not the optimal
 ytrain = y[:,train_mask]
 ```
 
-## Model and Data Configuration
+## Model and data configuration
 ```julia
 nin = size(X, 1)
 nhidden = 16
@@ -35,7 +35,7 @@ nout = length(classes)
 epochs = 40
 ```
 
-## Define the Neural GDE
+## Define Neural ODE
 ```julia
 struct NeuralODE{M <: Lux.AbstractExplicitLayer, So, Se, T, K} <:
        Lux.AbstractExplicitContainerLayer{(:model,)}
@@ -68,7 +68,7 @@ function diffeqsol_to_array(x::ODESolution{T, N, <:AbstractVector{<:CuArray}}) w
 end
 diffeqsol_to_array(x::ODESolution) = dropdims(Array(x); dims=3)
 ```
-## Create and Initialize the Neural Graph ODE Layer
+## Create and initialize the Neural Graph ODE layer
 ```julia
 function create_model()
     node_chain = WithStaticGraph(Chain(ExplicitGCNConv(nhidden => nhidden, relu),
@@ -94,7 +94,7 @@ function create_model()
     return model, ps, st
 end
 ```
-## Define Utility Functions
+## Define the loss function
 ```julia
 logitcrossentropy(ŷ, y) = mean(-sum(y .* logsoftmax(ŷ); dims=1))
 
@@ -111,7 +111,7 @@ function eval_loss_accuracy(X, y, mask, model, ps, st)
 end
 ```
 
-## Training
+## Train the model
 ```julia
 function train()
     model, ps, st = create_model()
