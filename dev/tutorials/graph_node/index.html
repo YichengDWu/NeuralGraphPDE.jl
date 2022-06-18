@@ -18,7 +18,7 @@ y = onehotbatch(g.ndata.targets, classes) # a dense matrix is not the optimal
 ytrain = y[:,train_mask]</code></pre><h2 id="Model-and-Data-Configuration"><a class="docs-heading-anchor" href="#Model-and-Data-Configuration">Model and Data Configuration</a><a id="Model-and-Data-Configuration-1"></a><a class="docs-heading-anchor-permalink" href="#Model-and-Data-Configuration" title="Permalink"></a></h2><pre><code class="language-julia hljs">nin = size(X, 1)
 nhidden = 16
 nout = length(classes)
-epochs = 40</code></pre><h2 id="Define-the-Neural-GDE"><a class="docs-heading-anchor" href="#Define-the-Neural-GDE">Define the Neural GDE</a><a id="Define-the-Neural-GDE-1"></a><a class="docs-heading-anchor-permalink" href="#Define-the-Neural-GDE" title="Permalink"></a></h2><pre><code class="language- hljs">struct NeuralODE{M &lt;: Lux.AbstractExplicitLayer, So, Se, T, K} &lt;:
+epochs = 40</code></pre><h2 id="Define-the-Neural-GDE"><a class="docs-heading-anchor" href="#Define-the-Neural-GDE">Define the Neural GDE</a><a id="Define-the-Neural-GDE-1"></a><a class="docs-heading-anchor-permalink" href="#Define-the-Neural-GDE" title="Permalink"></a></h2><pre><code class="language-julia hljs">struct NeuralODE{M &lt;: Lux.AbstractExplicitLayer, So, Se, T, K} &lt;:
        Lux.AbstractExplicitContainerLayer{(:model,)}
     model::M
     solver::So
@@ -48,8 +48,9 @@ function diffeqsol_to_array(x::ODESolution{T, N, &lt;:AbstractVector{&lt;:CuArra
     return dropdims(gpu(x); dims=3)
 end
 diffeqsol_to_array(x::ODESolution) = dropdims(Array(x); dims=3)</code></pre><h2 id="Create-and-Initialize-the-Neural-Graph-ODE-Layer"><a class="docs-heading-anchor" href="#Create-and-Initialize-the-Neural-Graph-ODE-Layer">Create and Initialize the Neural Graph ODE Layer</a><a id="Create-and-Initialize-the-Neural-Graph-ODE-Layer-1"></a><a class="docs-heading-anchor-permalink" href="#Create-and-Initialize-the-Neural-Graph-ODE-Layer" title="Permalink"></a></h2><pre><code class="language-julia hljs">function create_model()
-    node_chain = Chain(WithStaticGraph(ExplicitGCNConv(nhidden =&gt; nhidden, relu), g),
-                    WithStaticGraph(ExplicitGCNConv(nhidden =&gt; nhidden, relu), g)) #TODO: WithGraphChain
+    node_chain = WithStaticGraph(Chain(ExplicitGCNConv(nhidden =&gt; nhidden, relu),
+                                       ExplicitGCNConv(nhidden =&gt; nhidden, relu)),
+                                 g)
 
     node = NeuralODE(node_chain,
                      save_everystep = false,
@@ -68,7 +69,7 @@ diffeqsol_to_array(x::ODESolution) = dropdims(Array(x); dims=3)</code></pre><h2 
     st = st |&gt; gpu
 
     return model, ps, st
-end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">create_model (generic function with 1 method)</code></pre><h2 id="Define-Utility-Functions"><a class="docs-heading-anchor" href="#Define-Utility-Functions">Define Utility Functions</a><a id="Define-Utility-Functions-1"></a><a class="docs-heading-anchor-permalink" href="#Define-Utility-Functions" title="Permalink"></a></h2><pre><code class="language-julia hljs">logitcrossentropy(ŷ, y) = mean(-sum(y .* logsoftmax(ŷ); dims=1))
+end</code></pre><h2 id="Define-Utility-Functions"><a class="docs-heading-anchor" href="#Define-Utility-Functions">Define Utility Functions</a><a id="Define-Utility-Functions-1"></a><a class="docs-heading-anchor-permalink" href="#Define-Utility-Functions" title="Permalink"></a></h2><pre><code class="language-julia hljs">logitcrossentropy(ŷ, y) = mean(-sum(y .* logsoftmax(ŷ); dims=1))
 
 function loss(x, y, mask, model, ps, st)
     ŷ, st = model(x, ps, st)
@@ -80,7 +81,7 @@ function eval_loss_accuracy(X, y, mask, model, ps, st)
     l = logitcrossentropy(ŷ[:,mask], y[:,mask])
     acc = mean(onecold(ŷ[:,mask]) .== onecold(y[:,mask]))
     return (loss = round(l, digits=4), acc = round(acc*100, digits=2))
-end</code></pre><h2 id="Training"><a class="docs-heading-anchor" href="#Training">Training</a><a id="Training-1"></a><a class="docs-heading-anchor-permalink" href="#Training" title="Permalink"></a></h2><pre><code class="language- hljs">function train()
+end</code></pre><h2 id="Training"><a class="docs-heading-anchor" href="#Training">Training</a><a id="Training-1"></a><a class="docs-heading-anchor-permalink" href="#Training" title="Permalink"></a></h2><pre><code class="language-julia hljs">function train()
     model, ps, st = create_model()
 
     # Optimizer
@@ -92,47 +93,47 @@ end</code></pre><h2 id="Training"><a class="docs-heading-anchor" href="#Training
         (l,st), back = pullback(p-&gt;loss(X, ytrain, train_mask, model, p, st),ps)
         gs = back((one(l), nothing))[1]
         st_opt, ps = Optimisers.update(st_opt, ps, gs)
-        @show eval_loss_accuracy(X, y, train_mask, model, ps, st)
+        @show eval_loss_accuracy(X, y, val_mask, model, ps, st)
     end
 end
 
-train()</code></pre><h2 id="Expected-Output"><a class="docs-heading-anchor" href="#Expected-Output">Expected Output</a><a id="Expected-Output-1"></a><a class="docs-heading-anchor-permalink" href="#Expected-Output" title="Permalink"></a></h2><pre><code class="language-julia hljs">eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 1.8036f0, acc = 62.86)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 1.63f0, acc = 69.29)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 1.4418f0, acc = 68.57)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 1.2522f0, acc = 72.86)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 1.0726f0, acc = 85.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.9098f0, acc = 87.86)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.7592f0, acc = 93.57)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.6223f0, acc = 95.71)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.5003f0, acc = 98.57)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.3956f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.3075f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.2344f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.1769f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.1323f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0991f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0739f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0543f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0398f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0291f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0218f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0162f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.012f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0088f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0064f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0048f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0037f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0028f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0021f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0016f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0013f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.001f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0008f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0007f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0006f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0005f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0004f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0003f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0003f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0003f0, acc = 100.0)
-eval_loss_accuracy(X, y, train_mask, model, ps, st) = (loss = 0.0002f0, acc = 100.0)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../">« Home</a><a class="docs-footer-nextpage" href="../../api/layers/">layers »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.19 on <span class="colophon-date" title="Friday 17 June 2022 23:38">Friday 17 June 2022</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+train()</code></pre><h2 id="Expected-Output"><a class="docs-heading-anchor" href="#Expected-Output">Expected Output</a><a id="Expected-Output-1"></a><a class="docs-heading-anchor-permalink" href="#Expected-Output" title="Permalink"></a></h2><pre><code class="language-julia hljs">eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.8719f0, acc = 38.0)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.7944f0, acc = 39.4)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.6933f0, acc = 41.6)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.5726f0, acc = 48.4)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.447f0, acc = 57.6)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.3408f0, acc = 62.8)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.2522f0, acc = 68.8)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.1682f0, acc = 70.0)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.0832f0, acc = 72.8)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.0095f0, acc = 74.8)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 0.9572f0, acc = 75.2)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 0.9304f0, acc = 75.2)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 0.9238f0, acc = 75.2)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 0.9119f0, acc = 74.6)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 0.8986f0, acc = 75.2)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 0.9082f0, acc = 75.8)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 0.9463f0, acc = 75.2)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 0.9791f0, acc = 75.6)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 0.9932f0, acc = 75.6)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.0197f0, acc = 75.6)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.0741f0, acc = 75.6)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.1411f0, acc = 75.4)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.1969f0, acc = 75.2)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.2325f0, acc = 75.2)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.2646f0, acc = 75.2)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.3119f0, acc = 74.6)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.3799f0, acc = 74.4)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.4597f0, acc = 74.4)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.5367f0, acc = 74.2)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.5992f0, acc = 74.0)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.6423f0, acc = 73.8)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.6703f0, acc = 74.2)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.694f0, acc = 74.4)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.7245f0, acc = 74.6)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.769f0, acc = 74.8)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.8259f0, acc = 74.4)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.8883f0, acc = 74.4)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.9483f0, acc = 74.6)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.9996f0, acc = 74.2)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 2.0371f0, acc = 74.2)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../">« Home</a><a class="docs-footer-nextpage" href="../../api/layers/">layers »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.19 on <span class="colophon-date" title="Saturday 18 June 2022 01:20">Saturday 18 June 2022</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
