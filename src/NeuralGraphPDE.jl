@@ -7,7 +7,7 @@ using GraphNeuralNetworks: ADJMAT_T
 using Statistics: mean
 
 import GraphNeuralNetworks: propagate, apply_edges
-import Lux: initialparameters, parameterlength, statelength
+import Lux: initialparameters, parameterlength, statelength, Chain, applychain
 include("utils.jl")
 include("msgpass.jl")
 include("layers.jl")

@@ -30,6 +30,28 @@ function Base.show(io::IO, w::WithStaticGraph)
     return print(io, "WithStaticGraph(", w.model, ")")
 end
 """
+    Chain(GNN,GNN)(g,x,ps,st) -> y
+"""
+function (c::Chain)(g::GNNGraph, x, ps, st::NamedTuple)
+    return applychain(c.layers, g, x, ps, st)
+end
+
+@generated function applychain(layers::NamedTuple{fields}, g::GNNGraph, x, ps,
+                               st::NamedTuple{fields}) where {fields, T}
+    N = length(fields)
+    x_symbols = [gensym() for _ in 1:N]
+    st_symbols = [gensym() for _ in 1:N]
+    calls = [:(($(x_symbols[1]), $(st_symbols[1])) = layers[1](g, x, ps.layer_1, st.layer_1))]
+    append!(calls,
+            [:(($(x_symbols[i]), $(st_symbols[i])) = layers[$i](g, $(x_symbols[i - 1]),
+                                                                ps.$(fields[i]),
+                                                                st.$(fields[i])))
+             for i in 2:N])
+    push!(calls, :(st = NamedTuple{$fields}((($(Tuple(st_symbols)...),)))))
+    push!(calls, :(return $(x_symbols[N]), st))
+    return Expr(:block, calls...)
+end
+"""
     ExplicitEdgeConv(ϕ; aggr=max)
 # Arguments
 - `ϕ`: A neural network. 

@@ -36,7 +36,7 @@ epochs = 40
 ```
 
 ## Define the Neural GDE
-```@example node
+```julia
 struct NeuralODE{M <: Lux.AbstractExplicitLayer, So, Se, T, K} <:
        Lux.AbstractExplicitContainerLayer{(:model,)}
     model::M
@@ -69,7 +69,7 @@ end
 diffeqsol_to_array(x::ODESolution) = dropdims(Array(x); dims=3)
 ```
 ## Create and Initialize the Neural Graph ODE Layer
-```@example model
+```julia
 function create_model()
     node_chain = Chain(WithStaticGraph(ExplicitGCNConv(nhidden => nhidden, relu), g),
                     WithStaticGraph(ExplicitGCNConv(nhidden => nhidden, relu), g)) #TODO: WithGraphChain
@@ -111,7 +111,7 @@ end
 ```
 
 ## Training
-```@example train
+```julia
 function train()
     model, ps, st = create_model()
 
