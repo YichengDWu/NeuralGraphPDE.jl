@@ -1,7 +1,7 @@
 """
     WithStaticGraph(model,g)
 
-A wrapper for `model`, assuming the graph is static and nontrainable.
+A wrapper for `model`, assuming the graph is static and nontrainable. You can create a `Chain` of `WithStaticGraph`s or the other way around.
 
 # Arguments
 
@@ -15,6 +15,10 @@ t = [2,3,1,1]
 g = GNNGraph(s, t)
 model = ExplicitGCNConv(3 => 5)
 wg = WithStaticGraph(model, g)
+
+# With Chain
+model = ExplicitGCNConv(3 => 5)
+wg = WithStaticGraph(Chain(ExplicitGCNConv(3 => 5),ExplicitGCNConv(5 => 5)), g)
 ```
 """
 struct WithStaticGraph{M<:AbstractExplicitLayer,G<:GNNGraph} <:
