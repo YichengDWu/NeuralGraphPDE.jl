@@ -7,7 +7,7 @@
 
 This package is based on hacking [GraphNeuralNetwork.jl](https://github.com/CarloLucibello/GraphNeuralNetworks.jl) to produce explicit GNN layers that can work with `Lux.jl`.
 
-The goal is to extend Neural ODE to Neural Graph PDE.
+The goal is to extend Neural (Graph) ODE to Neural Graph PDE.
 
 ## Ref 
 1. Iakovlev V, Heinonen M, Lähdesmäki H. Learning continuous-time PDEs from sparse data with graph neural networks[J]. arXiv preprint arXiv:2006.08956, 2020.
