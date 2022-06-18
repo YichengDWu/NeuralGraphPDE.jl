@@ -52,9 +52,23 @@ using Test
 
             ps, st = Lux.setup(rng, l)
             @test st == (;)
-            y,st = l(g, x, ps, st)   
+            y, st = l(g, x, ps, st)   
             @test size(y) == (5, g.num_nodes)
             @test st == (;)
+        end
+
+        @testset "edge" begin
+            x = randn(3, g.num_nodes)
+            u = rand(4, g.num_nodes)
+            l = ExplicitEdgeConv(Dense(4+4+3 => 5)) 
+
+            ps, st = Lux.setup(rng, l)
+            y, _ = l(g, (u=u,x=x), ps, st)
+            @test size(y) == (5, g.num_nodes)
+
+            e = x[:,s]-x[:,t]
+            y2, _ = l(g, u, e, ps, st)
+            @test y2 == y
         end
     end
 end
