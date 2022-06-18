@@ -34,7 +34,19 @@ function Base.show(io::IO, w::WithStaticGraph)
     return print(io, "WithStaticGraph(", w.model, ")")
 end
 """
-    Chain(GNN,GNN)(g,x,ps,st) -> y
+    Chain(GNN,...,GNN)(g,x,ps,st) -> y, st
+
+# Inputs
+
+- `g`: `GNNGraph`.
+- `x`: Array.
+
+# Examples
+```julia
+cg = Chain(ExplicitGCNConv(3 => 5),
+           ExplicitGCNConv(5 => 5))
+cg(g, x, ps, st)
+```
 """
 function (c::Chain)(g::GNNGraph, x, ps, st::NamedTuple)
     return applychain(c.layers, g, x, ps, st)
