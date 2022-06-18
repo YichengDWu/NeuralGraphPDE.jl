@@ -71,8 +71,9 @@ diffeqsol_to_array(x::ODESolution) = dropdims(Array(x); dims=3)
 ## Create and Initialize the Neural Graph ODE Layer
 ```julia
 function create_model()
-    node_chain = Chain(WithStaticGraph(ExplicitGCNConv(nhidden => nhidden, relu), g),
-                    WithStaticGraph(ExplicitGCNConv(nhidden => nhidden, relu), g)) #TODO: WithGraphChain
+    node_chain = WithStaticGraph(Chain(ExplicitGCNConv(nhidden => nhidden, relu),
+                                       ExplicitGCNConv(nhidden => nhidden, relu)),
+                                 g)
 
     node = NeuralODE(node_chain,
                      save_everystep = false,
