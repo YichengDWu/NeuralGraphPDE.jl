@@ -1,38 +1,11 @@
-"""
-    WithStaticGraph(model,g)
+abstract type AbstractGNNLayer <: AbstractExplicitLayer end
 
-A wrapper for `model`, assuming the graph is static and nontrainable. You can create a `Chain` of `WithStaticGraph`s or the other way around.
+function initialgraph end
+initialstates(rng::AbstractRNG, l::AbstractGNNLayer) = (graph= l.initialgraph(),)
+statelength(l::AbstractGNNLayer) = 1
+wrapgraph(g::GNNGraph) = () -> copy(g)
+wrapgraph(f::Function) = f
 
-# Arguments
-
-- `model`: A function that takes a graph.
-- `g`: A graph.
-
-# Examples
-```
-s = [1,1,2,3]
-t = [2,3,1,1]
-g = GNNGraph(s, t)
-model = ExplicitGCNConv(3 => 5)
-wg = WithStaticGraph(model, g)
-
-# With Chain
-model = ExplicitGCNConv(3 => 5)
-wg = WithStaticGraph(Chain(ExplicitGCNConv(3 => 5),ExplicitGCNConv(5 => 5)), g)
-```
-"""
-struct WithStaticGraph{M<:AbstractExplicitLayer,G<:GNNGraph} <:
-        AbstractExplicitContainerLayer{(:model,)}
-    model:: M
-    g:: G
-end
-
-(w::WithStaticGraph)(g::GNNGraph, x...;kws...) = w.model(g, x...;kws...)
-(w::WithStaticGraph)(x...;kws...) = w.model(w.g, x...;kws...)
-
-function Base.show(io::IO, w::WithStaticGraph)
-    return print(io, "WithStaticGraph(", w.model, ")")
-end
 """
     Chain(GNN,...,GNN)(g,x,ps,st) -> y, st
 
@@ -141,7 +114,7 @@ g = GNNGraph(s, t)
 x = randn(3, g.num_nodes)
 
 # create layer
-l = ExplicitGCNConv(3 => 5) 
+l = ExplicitGCNConv(3 => 5, initialgraph = g) 
 
 # setup layer
 rng = Random.default_rng()
@@ -150,24 +123,16 @@ Random.seed!(rng, 0)
 ps, st = Lux.setup(rng, l)
 
 # forward pass
-y = l(g, x, ps, st)       # size:  5 × num_nodes
-
-# convolution with edge weights
-w = [1.1, 0.1, 2.3, 0.5]
-y = l(g, x, ps, st, w)
-
-# Edge weights can also be embedded in the graph.
-g = GNNGraph(s, t, w)
-l = ExplicitGCNConv(3 => 5, use_edge_weight=true) 
-y = l(g, x, ps, st) # same as l(g, x, ps, st, w) 
+y = l(x, ps, st)       # size:  5 × num_nodes
 ```
 """
-struct ExplicitGCNConv{bias,F1,F2,F3} <: AbstractExplicitLayer
+struct ExplicitGCNConv{bias,F1,F2,F3,F4} <: AbstractGNNLayer
+    initialgraph:: F1
     in_chs::Int
     out_chs::Int
-    activation::F1
-    init_weight::F2
-    init_bias::F3
+    activation::F2
+    init_weight::F3
+    init_bias::F4
     add_self_loops::Bool
     use_edge_weight::Bool
 end
@@ -191,28 +156,27 @@ function parameterlength(d::ExplicitGCNConv{bias}) where {bias}
     return bias ? d.out_chs * (d.in_chs + 1) : d.out_chs * d.in_chs
 end
 
-statelength(d::ExplicitGCNConv) = 0
-
 function ExplicitGCNConv(in_chs::Int, out_chs::Int, activation = identity;
-                         init_weight=glorot_normal, init_bias=zeros32,
+                         initialgraph = initialgraph, init_weight=glorot_normal, init_bias=zeros32,
                          bias::Bool=true, add_self_loops::Bool=true, use_edge_weight::Bool=false) 
     activation = NNlib.fast_act(activation)
-    return ExplicitGCNConv{bias, typeof(activation), typeof(init_weight), typeof(init_bias)}(in_chs, out_chs, activation, 
-                                                                                             init_weight, init_bias, 
-                                                                                             add_self_loops, use_edge_weight)
+    initialgraph = wrapgraph(initialgraph)
+    return ExplicitGCNConv{bias, typeof(initialgraph), typeof(activation), typeof(init_weight), typeof(init_bias)}(initialgraph, in_chs, out_chs, activation, 
+                                                                                                                   init_weight, init_bias, 
+                                                                                                                   add_self_loops, use_edge_weight)
 end
 
 function ExplicitGCNConv(ch::Pair{Int,Int}, activation=identity;
-                         init_weight=glorot_uniform, init_bias = zeros32,
+                         initialgraph = initialgraph, init_weight=glorot_uniform, init_bias = zeros32,
                          bias::Bool=true, add_self_loops=true, use_edge_weight=false)
     return ExplicitGCNConv(first(ch), last(ch), activation, 
-                           init_weight = init_weight, init_bias = init_bias,
+                           initialgraph = initialgraph, init_weight = init_weight, init_bias = init_bias,
                            bias = bias, add_self_loops = add_self_loops, use_edge_weight=use_edge_weight)
 end
 
-function (l::ExplicitGCNConv)(g::GNNGraph, x::AbstractMatrix{T}, ps, st:: NamedTuple, edge_weight::EW=nothing) where 
+function (l::ExplicitGCNConv)(x::AbstractMatrix{T}, ps, st:: NamedTuple, edge_weight::EW=nothing) where 
     {T, EW<:Union{Nothing,AbstractVector}}
-    
+    g = st.graph
     @assert !(g isa GNNGraph{<:ADJMAT_T} && edge_weight !== nothing) "Providing external edge_weight is not yet supported for adjacency matrix graphs"
 
     if edge_weight !== nothing
@@ -248,9 +212,4 @@ function (l::ExplicitGCNConv)(g::GNNGraph, x::AbstractMatrix{T}, ps, st:: NamedT
         x = ps.weight * x
     end
     return l.activation.(x .+ ps.bias), st
-end
-
-function (l::ExplicitGCNConv)(g::GNNGraph{<:ADJMAT_T}, x::AbstractMatrix, ps, st::NamedTuple, edge_weight::AbstractVector)
-    g = GNNGraph(edge_index(g)...; g.num_nodes)  # convert to COO
-    return l(g, x, ps, st, edge_weight)
 end

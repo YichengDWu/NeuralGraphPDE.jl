@@ -2,8 +2,9 @@
 
 This tutorial is adapted from [SciMLSensitivity](https://sensitivity.sciml.ai/dev/neural_ode/neural_gde/), [GraphNeuralNetworks](https://github.com/CarloLucibello/GraphNeuralNetworks.jl/blob/master/examples/neural_ode_cora.jl), and [Lux](http://lux.csail.mit.edu/dev/examples/generated/intermediate/NeuralODE/main/).
 ## Load the packages
-```julia
+```@example gnode
 using GraphNeuralNetworks, NeuralGraphPDE, DifferentialEquations
+import NeuralGraphPDE: initialgraph
 using Lux, NNlib, Optimisers, Zygote, Random, ComponentArrays
 using DiffEqSensitivity
 using Statistics: mean
@@ -14,7 +15,7 @@ device = CUDA.functional() ? gpu : cpu
 ```
 
 ## Load data
-```julia
+```@example gnode
 onehotbatch(data::CuArray,labels)= cu(labels).==reshape(data, 1,size(data)...)
 onecold(y) =  map(argmax,eachcol(y))
 
@@ -28,7 +29,7 @@ ytrain = y[:,train_mask]
 ```
 
 ## Model and data configuration
-```julia
+```@example gnode
 nin = size(X, 1)
 nhidden = 16
 nout = length(classes)
@@ -36,7 +37,7 @@ epochs = 40
 ```
 
 ## Define Neural ODE
-```julia
+```@example gnode
 struct NeuralODE{M <: Lux.AbstractExplicitLayer, So, Se, T, K} <:
        Lux.AbstractExplicitContainerLayer{(:model,)}
     model::M
@@ -69,17 +70,17 @@ end
 diffeqsol_to_array(x::ODESolution) = dropdims(Array(x); dims=3)
 ```
 ## Create and initialize the Neural Graph ODE layer
-```julia
+```@example gnode
+initialgraph() = copy(g)
 function create_model()
-    node_chain = WithStaticGraph(Chain(ExplicitGCNConv(nhidden => nhidden, relu),
-                                       ExplicitGCNConv(nhidden => nhidden, relu)),
-                                 g)
+    node_chain = Chain(ExplicitGCNConv(nhidden => nhidden, relu),
+                       ExplicitGCNConv(nhidden => nhidden, relu))
 
     node = NeuralODE(node_chain,
                      save_everystep = false,
                      reltol = 1e-3, abstol = 1e-3, save_start = false)
 
-    model = Chain(WithStaticGraph(ExplicitGCNConv(nin => nhidden, relu), g),
+    model = Chain(ExplicitGCNConv(nin => nhidden, relu),
                   node,
                   diffeqsol_to_array,
                   Dense(nhidden, nout))
@@ -95,7 +96,7 @@ function create_model()
 end
 ```
 ## Define the loss function
-```julia
+```@example gnode
 logitcrossentropy(ŷ, y) = mean(-sum(y .* logsoftmax(ŷ); dims=1))
 
 function loss(x, y, mask, model, ps, st)
@@ -112,7 +113,7 @@ end
 ```
 
 ## Train the model
-```julia
+```@example gnode
 function train()
     model, ps, st = create_model()
 
@@ -133,7 +134,7 @@ train()
 ```
 
 ## Expected Output
-```julia
+```@example gnode
 eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.8719f0, acc = 38.0)
 eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.7944f0, acc = 39.4)
 eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.6933f0, acc = 41.6)
