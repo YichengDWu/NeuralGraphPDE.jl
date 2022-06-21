@@ -12,5 +12,5 @@ include("utils.jl")
 include("msgpass.jl")
 include("layers.jl")
 
-export ExplicitEdgeConv, ExplicitGCNConv
+export ExplicitEdgeConv, ExplicitGCNConv, updategraph
 end

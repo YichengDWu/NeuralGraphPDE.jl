@@ -24,6 +24,7 @@ makedocs(;
             [
                 "layers" => "api/layers.md",
                 "Message Passing" => "api/messagepassing.md",
+                "Utilities" => "api/utilities.md"
             ],
     ],
 )
