@@ -1,6 +1,6 @@
 @inline drop(nt::NamedTuple, key::Symbol) = Base.structdiff(nt, NamedTuple{(key,)})
 """
-    copg(g::GNNGraph)
+    copy(g::GNNGraph)
 
 Make a shollow copy of the input graph `g`.
 """
