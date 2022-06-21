@@ -19,7 +19,7 @@ device = CUDA.functional() ? gpu : cpu
 onehotbatch(data::CuArray,labels)= cu(labels).==reshape(data, 1,size(data)...)
 onecold(y) =  map(argmax,eachcol(y))
 
-dataset = Cora()
+dataset = Cora();
 classes = dataset.metadata["classes"]
 g = mldataset2gnngraph(dataset) |> device
 X = g.ndata.features
