@@ -118,7 +118,7 @@ function train()
     model, ps, st = create_model()
 
     # Optimizer
-    opt = Optimisers.ADAM(0.01f0)
+    opt = Optimisers.Adam(0.01f0)
     st_opt = Optimisers.setup(opt,ps)
 
     # Training Loop
@@ -134,7 +134,7 @@ train()
 ```
 
 ## Expected Output
-```@example gnode
+```julia
 eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.8719f0, acc = 38.0)
 eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.7944f0, acc = 39.4)
 eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.6933f0, acc = 41.6)
