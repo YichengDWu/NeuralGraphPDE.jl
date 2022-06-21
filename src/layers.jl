@@ -13,7 +13,7 @@ statelength(l::AbstractGNNLayer) = 1 #default
 
 function initialstates(rng::AbstractRNG,
     l::AbstractGNNContainerLayer{layers}) where {layers}
-    length(layers) == 1 && return initialstates(rng, getfield(l, layers[1]))
+    #length(layers) == 1 && return merge(initialstates(rng, getfield(l, layers[1])), (graph = l.initialgraph(),))
     return merge(NamedTuple{layers}(initialstates.(rng, getfield.((l,), layers))), (graph = l.initialgraph(),))
 end
 
@@ -44,7 +44,7 @@ struct ExplicitEdgeConv{F,M<:AbstractExplicitLayer} <:
     aggr
 end
 
-ExplicitEdgeConv(ϕ; initialgraph=initialgraph, aggr = mean) = ExplicitEdgeConv(ϕ, initialgraph, aggr)
+ExplicitEdgeConv(ϕ; initialgraph=initialgraph, aggr = mean) = ExplicitEdgeConv(wrapgraph(initialgraph), ϕ, aggr)
 
 function (l::ExplicitEdgeConv)(ndata::AbstractArray, edata::AbstractArray,
                                ps, st::NamedTuple) 
@@ -52,16 +52,16 @@ function (l::ExplicitEdgeConv)(ndata::AbstractArray, edata::AbstractArray,
     function message(xi, xj, e, ps, st)
         return l.ϕ(cat(xi, xj, e, dims = 1), ps, st) 
     end    
-    return propagate(message, g, l.aggr, ps.ϕ, st.ϕ, xi = ndata, xj = ndata, e = edata)
+    return propagate(message, g, l.aggr, ps, st.ϕ, xi = ndata, xj = ndata, e = edata)
 end
 
-function (l::ExplicitEdgeConv)((ndata::NamedTuple, edata::AbstractArray),
+function (l::ExplicitEdgeConv)((ndata, edata)::NTuple{2,NamedTuple},
                                ps, st::NamedTuple) 
     g = st.graph
     function message(xi,xj, e, ps, st)
         return l.ϕ(cat(values(xi)..., values(xj)..., e, dims = 1), ps, st) 
     end    
-    return propagate(message, g, l.aggr, ps.ϕ, st.ϕ, xi = ndata, xj = ndata, e = edata)
+    return propagate(message, g, l.aggr, ps, st.ϕ, xi = ndata, xj = ndata, e = edata)
 end
 
 function (l::ExplicitEdgeConv)(ndata::NamedTuple, 
@@ -72,7 +72,7 @@ function (l::ExplicitEdgeConv)(ndata::NamedTuple,
         hi, hj = drop(ndatai, :x), drop(ndataj, :x)
         return l.ϕ(cat(values(hi)..., values(hj)..., xj-xi, dims = 1), ps, st) 
     end    
-    return propagate(message, g, l.aggr, ps.ϕ, st.ϕ, xi = ndata, xj = ndata)
+    return propagate(message, g, l.aggr, ps, st.ϕ, xi = ndata, xj = ndata)
 end
 
 
