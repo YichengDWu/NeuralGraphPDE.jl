@@ -14,6 +14,17 @@ makedocs(;
         edit_link="main",
         assets=String[],
     ),
+    
+    doctest = false,
+    strict = [
+        :doctest,
+        :linkcheck,
+        :parse_error,
+        :example_block,
+        # Other available options are
+        # :autodocs_block, :cross_references, :docs_block, :eval_block, :example_block, :footnote, :meta_block, :missing_docs, :setup_block
+    ],
+
     pages=[
         "Home" => "index.md",
         "Tutorials" => 
@@ -22,7 +33,7 @@ makedocs(;
                 ],
         "API Reference" => 
             [
-                "layers" => "api/layers.md",
+                "Layers" => "api/layers.md",
                 "Message Passing" => "api/messagepassing.md",
                 "Utilities" => "api/utilities.md"
             ],
