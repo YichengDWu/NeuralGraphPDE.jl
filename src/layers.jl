@@ -1,45 +1,29 @@
 abstract type AbstractGNNLayer <: AbstractExplicitLayer end
+"""
+    AbstractGNNContainerLayer{layers} <: AbstractExplicitContainerLayer{layers}
+
+This is a type of GNN layers that has other layers inside it.
+"""
+abstract type AbstractGNNContainerLayer{layers} <: AbstractExplicitContainerLayer{layers} end
 
 function initialgraph end
+
 initialstates(rng::AbstractRNG, l::AbstractGNNLayer) = (graph= l.initialgraph(),)
-statelength(l::AbstractGNNLayer) = 1
+statelength(l::AbstractGNNLayer) = 1 #default
+
+function initialstates(rng::AbstractRNG,
+    l::AbstractGNNContainerLayer{layers}) where {layers}
+    length(layers) == 1 && return initialstates(rng, getfield(l, layers[1]))
+    return merge(NamedTuple{layers}(initialstates.(rng, getfield.((l,), layers))), (graph = l.initialgraph(),))
+end
+
+function statelength(l::AbstractGNNContainerLayer{layers}) where {layers}
+    return sum(statelength, getfield.((l,), layers))+1
+end
+
 wrapgraph(g::GNNGraph) = () -> copy(g)
 wrapgraph(f::Function) = f
 
-"""
-    Chain(GNN,...,GNN)(g,x,ps,st) -> y, st
-
-# Inputs
-
-- `g`: `GNNGraph`.
-- `x`: Array.
-
-# Examples
-```julia
-cg = Chain(ExplicitGCNConv(3 => 5),
-           ExplicitGCNConv(5 => 5))
-cg(g, x, ps, st)
-```
-"""
-function (c::Chain)(g::GNNGraph, x, ps, st::NamedTuple)
-    return applychain(c.layers, g, x, ps, st)
-end
-
-@generated function applychain(layers::NamedTuple{fields}, g::GNNGraph, x, ps,
-                               st::NamedTuple{fields}) where {fields, T}
-    N = length(fields)
-    x_symbols = [gensym() for _ in 1:N]
-    st_symbols = [gensym() for _ in 1:N]
-    calls = [:(($(x_symbols[1]), $(st_symbols[1])) = layers[1](g, x, ps.layer_1, st.layer_1))]
-    append!(calls,
-            [:(($(x_symbols[i]), $(st_symbols[i])) = layers[$i](g, $(x_symbols[i - 1]),
-                                                                ps.$(fields[i]),
-                                                                st.$(fields[i])))
-             for i in 2:N])
-    push!(calls, :(st = NamedTuple{$fields}((($(Tuple(st_symbols)...),)))))
-    push!(calls, :(return $(x_symbols[N]), st))
-    return Expr(:block, calls...)
-end
 """
     ExplicitEdgeConv(ϕ; aggr=max)
 # Arguments
@@ -53,41 +37,42 @@ end
     - `ndata`: NamedTuple or Array.
     - `edata`: Array of spatial differences.
 """
-struct ExplicitEdgeConv{M<:AbstractExplicitLayer} <:
-        AbstractExplicitContainerLayer{(:ϕ,)}
+struct ExplicitEdgeConv{F,M<:AbstractExplicitLayer} <:
+        AbstractGNNContainerLayer{(:ϕ,)}
+    initialgraph::F
     ϕ::M
     aggr
 end
 
-ExplicitEdgeConv(ϕ; aggr = mean) = ExplicitEdgeConv(ϕ, aggr)
+ExplicitEdgeConv(ϕ; initialgraph=initialgraph, aggr = mean) = ExplicitEdgeConv(ϕ, initialgraph, aggr)
 
-function (l::ExplicitEdgeConv)(g:: GNNGraph,
-                               ndata::AbstractArray, edata::AbstractArray,
+function (l::ExplicitEdgeConv)(ndata::AbstractArray, edata::AbstractArray,
                                ps, st::NamedTuple) 
+    g = st.graph
     function message(xi, xj, e, ps, st)
         return l.ϕ(cat(xi, xj, e, dims = 1), ps, st) 
     end    
-    return propagate(message, g, l.aggr, ps, st, xi = ndata, xj = ndata, e = edata)
+    return propagate(message, g, l.aggr, ps.ϕ, st.ϕ, xi = ndata, xj = ndata, e = edata)
 end
 
-function (l::ExplicitEdgeConv)(g:: GNNGraph,
-                               ndata::NamedTuple, edata::AbstractArray,
+function (l::ExplicitEdgeConv)((ndata::NamedTuple, edata::AbstractArray),
                                ps, st::NamedTuple) 
+    g = st.graph
     function message(xi,xj, e, ps, st)
         return l.ϕ(cat(values(xi)..., values(xj)..., e, dims = 1), ps, st) 
     end    
-    return propagate(message, g, l.aggr, ps, st, xi = ndata, xj = ndata, e = edata)
+    return propagate(message, g, l.aggr, ps.ϕ, st.ϕ, xi = ndata, xj = ndata, e = edata)
 end
 
-function (l::ExplicitEdgeConv)(g:: GNNGraph,
-                               ndata::NamedTuple, 
+function (l::ExplicitEdgeConv)(ndata::NamedTuple, 
                                ps, st::NamedTuple) 
+    g = st.graph
     function message(ndatai,ndataj, e, ps, st)
-        xi,xj = ndatai.x, ndataj.x
-        hi,hj = drop(ndatai, :x), drop(ndataj, :x)
+        xi, xj = ndatai.x, ndataj.x
+        hi, hj = drop(ndatai, :x), drop(ndataj, :x)
         return l.ϕ(cat(values(hi)..., values(hj)..., xj-xi, dims = 1), ps, st) 
     end    
-    return propagate(message, g, l.aggr, ps, st, xi = ndata, xj = ndata)
+    return propagate(message, g, l.aggr, ps.ϕ, st.ϕ, xi = ndata, xj = ndata)
 end
 
 
