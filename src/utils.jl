@@ -1,1 +1,2 @@
 @inline drop(nt::NamedTuple, key::Symbol) = Base.structdiff(nt, NamedTuple{(key,)})
+Base.copy(g::GNNGraph) = GNNGraph(g.graph, g.num_nodes,g.num_edges,g.num_graphs,g.graph_indicator,g.ndata,g.edata,g.gdata)
