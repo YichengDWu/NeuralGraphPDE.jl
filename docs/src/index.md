@@ -10,7 +10,7 @@ Documentation for [NeuralGraphPDE](https://github.com/MilkshakeForReal/NeuralGra
 ## Why `Lux`?
 
 - Layers and graphs are coupled and decoupled at the same time: You can bind the a graph to a layer at initialization, but the graph
-  is stored in `st`. They are decoupled in the sense that you can easily update or change the graph by change `st`:
+  is stored in `st`. They are decoupled in the sense that you can easily update or change the graph by changing `st`:
     ```julia
         using NeuralGraphPDE, GraphNeuralNetworks, Random, Lux
         g = rand_graph(5, 4, bidirected=false)
@@ -35,7 +35,7 @@ Documentation for [NeuralGraphPDE](https://github.com/MilkshakeForReal/NeuralGra
         y = l(x, ps, st)
     ```
 
-- For node level problem, you can define the graph only once. The way to do it is to overload `initalgraph`:
+- For node level problems, you can define the graph only once and forget it. The way to do it is to overload `initalgraph`:
     ```julia
         import NeuralGraphPDE: initialgraph
         g = rand_graph(5, 4, bidirected=false)
