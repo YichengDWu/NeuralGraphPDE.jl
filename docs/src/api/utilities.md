@@ -19,3 +19,6 @@ Modules = [NeuralGraphPDE]
 Pages   = ["utils.jl"]
 Private = false
 ```
+```@docs
+copy
+```

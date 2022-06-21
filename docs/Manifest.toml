@@ -1038,7 +1038,7 @@ uuid = "ca575930-c2e3-43a9-ace4-1e988b2c1908"
 deps = ["DifferentialEquations", "GraphNeuralNetworks", "Lux", "NNlib", "Statistics"]
 path = ".."
 uuid = "dc0c328b-2f26-4c4e-a741-3d78bb01adf9"
-version = "0.1.0"
+version = "0.1.1"
 
 [[deps.NonlinearSolve]]
 deps = ["ArrayInterfaceCore", "FiniteDiff", "ForwardDiff", "IterativeSolvers", "LinearAlgebra", "RecursiveArrayTools", "RecursiveFactorization", "Reexport", "SciMLBase", "Setfield", "StaticArrays", "UnPack"]
