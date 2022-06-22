@@ -31,7 +31,7 @@ y, st = l(x, ps, st)    # you don't need to feed graph in the forward pass
 
 #change the graph
 new_g = rand_graph(5, 7, bidirected=false)
-st = merge(st, (graph = copy(new_g),))
+st = updategraph(new_g)
 
 y, st = l(x, ps, st)
 ```
