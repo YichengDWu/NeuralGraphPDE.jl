@@ -11,5 +11,5 @@ The goal is to extend Neural (Graph) ODE to Neural Graph PDE (WIP). Be aware of 
 
 This library will focus on (only a few) **equivariant** GNNs. This is not a general GNN package.
 
-## Ref 
+## References
 1. Iakovlev V, Heinonen M, Lähdesmäki H. Learning continuous-time PDEs from sparse data with graph neural networks[J]. arXiv preprint arXiv:2006.08956, 2020.
