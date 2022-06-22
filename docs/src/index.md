@@ -56,3 +56,5 @@ ps, st = Lux.setup(rng, model)
 # forward pass
 y, st = model(x, ps, st)
 ```
+
+- A unified interface. As pointed out [here](https://discourse.julialang.org/t/using-a-variable-graph-structure-with-neuralode-and-gcnconv/78881), GNNs are difficult to work well with other neural networks when the input graph is changing. This will not a issue here. You have a unified interface `y, st = model(x, ps, st)`.
