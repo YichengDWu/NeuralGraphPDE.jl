@@ -57,5 +57,5 @@ ps, st = Lux.setup(rng, model)
 y, st = model(x, ps, st)
 ```
 
-- An unified interface. As pointed out [here](https://discourse.julialang.org/t/using-a-variable-graph-structure-with-neuralode-and-gcnconv/78881), GNNs are difficult to work well with other neural networks when the input graph is changing. This will not be a issue here. You have an unified interface `y, st = model(x, ps, st)`.
+- An unified interface. As pointed out [here](https://discourse.julialang.org/t/using-a-variable-graph-structure-with-neuralode-and-gcnconv/78881), GNNs are difficult to work well with other neural networks when the input graph is changing. This will not be an issue here. You have an unified interface `y, st = model(x, ps, st)`.
 - Having node embeddings and other nontrainable features such as spaital coordinates? Thanks to [Lux](http://lux.csail.mit.edu/dev/manual/migrate_from_flux/#implementing-custom-layers), trainable parameters and nonntrainable parameters are seperately stored in `x` and `st`. 
