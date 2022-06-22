@@ -19,7 +19,7 @@ function updategraph(st::NamedTuple, g::GNNGraph)
         if key == :graph
             st = merge(st, (graph=copy(g),))
         elseif val isa NamedTuple
-            st = merge(st, (key=>updategraph(val, g),))
+            st = merge(st, (key => updategraph(val, g),))
         end
     end
     return st
