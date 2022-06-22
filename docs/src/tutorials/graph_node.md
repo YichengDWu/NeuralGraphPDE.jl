@@ -16,7 +16,7 @@ device = CUDA.functional() ? gpu : cpu
 
 ## Load data
 ```@example gnode
-onehotbatch(data::CuArray,labels) = cu(labels) .== reshape(data, 1,size(data)...)
+onehotbatch(data,labels) = device(labels) .== reshape(data, 1,size(data)...)
 onecold(y) =  map(argmax,eachcol(y))
 
 dataset = Cora();
