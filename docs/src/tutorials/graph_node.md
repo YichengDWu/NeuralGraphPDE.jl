@@ -89,8 +89,8 @@ function create_model()
     Random.seed!(rng, 0)
 
     ps, st = Lux.setup(rng, model)
-    ps = ComponentArray(ps) |> gpu
-    st = st |> gpu
+    ps = ComponentArray(ps) |> device
+    st = st |> device
 
     return model, ps, st
 end
@@ -131,48 +131,4 @@ function train()
 end
 
 train()
-```
-
-## Expected Output
-```julia
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.8719f0, acc = 38.0)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.7944f0, acc = 39.4)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.6933f0, acc = 41.6)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.5726f0, acc = 48.4)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.447f0, acc = 57.6)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.3408f0, acc = 62.8)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.2522f0, acc = 68.8)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.1682f0, acc = 70.0)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.0832f0, acc = 72.8)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.0095f0, acc = 74.8)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 0.9572f0, acc = 75.2)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 0.9304f0, acc = 75.2)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 0.9238f0, acc = 75.2)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 0.9119f0, acc = 74.6)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 0.8986f0, acc = 75.2)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 0.9082f0, acc = 75.8)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 0.9463f0, acc = 75.2)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 0.9791f0, acc = 75.6)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 0.9932f0, acc = 75.6)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.0197f0, acc = 75.6)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.0741f0, acc = 75.6)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.1411f0, acc = 75.4)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.1969f0, acc = 75.2)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.2325f0, acc = 75.2)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.2646f0, acc = 75.2)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.3119f0, acc = 74.6)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.3799f0, acc = 74.4)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.4597f0, acc = 74.4)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.5367f0, acc = 74.2)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.5992f0, acc = 74.0)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.6423f0, acc = 73.8)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.6703f0, acc = 74.2)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.694f0, acc = 74.4)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.7245f0, acc = 74.6)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.769f0, acc = 74.8)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.8259f0, acc = 74.4)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.8883f0, acc = 74.4)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.9483f0, acc = 74.6)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.9996f0, acc = 74.2)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 2.0371f0, acc = 74.2)
 ```
