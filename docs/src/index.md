@@ -27,13 +27,13 @@ Random.seed!(rng, 0)
 ps, st = Lux.setup(rng, l)
 
 # forward pass
-y = l(x, ps, st)    # you don't need to feed graph in the forward pass
+y, st = l(x, ps, st)    # you don't need to feed graph in the forward pass
 
 #change the graph
 new_g = rand_graph(5, 7, bidirected=false)
 st = merge(st, (graph = copy(new_g),))
 
-y = l(x, ps, st)
+y, st = l(x, ps, st)
 ```
 
 - For node level problems, you can define the graph only once and forget it. The way to do it is to overload `initalgraph`:
@@ -54,5 +54,5 @@ Random.seed!(rng, 0)
 ps, st = Lux.setup(rng, model)
 
 # forward pass
-y = model(x, ps, st)
+y, st = model(x, ps, st)
 ```

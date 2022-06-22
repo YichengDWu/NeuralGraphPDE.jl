@@ -2,7 +2,7 @@ abstract type AbstractGNNLayer <: AbstractExplicitLayer end
 """
     AbstractGNNContainerLayer{layers} <: AbstractExplicitContainerLayer{layers}
 
-This is a type of GNN layers that has other layers inside it.
+This is an abstract type of GNN layers that contains other layers.
 """
 abstract type AbstractGNNContainerLayer{layers} <: AbstractExplicitContainerLayer{layers} end
 
@@ -13,7 +13,6 @@ statelength(l::AbstractGNNLayer) = 1 #default
 
 function initialstates(rng::AbstractRNG,
     l::AbstractGNNContainerLayer{layers}) where {layers}
-    #length(layers) == 1 && return merge(initialstates(rng, getfield(l, layers[1])), (graph = l.initialgraph(),))
     return merge(NamedTuple{layers}(initialstates.(rng, getfield.((l,), layers))), (graph = l.initialgraph(),))
 end
 
