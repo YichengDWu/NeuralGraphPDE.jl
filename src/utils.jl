@@ -14,10 +14,10 @@ copy(g::GNNGraph) = GNNGraph(g)
 Recursively replace the value of `graph` with a shallow copy of `g`.
 """
 function updategraph(st::NamedTuple, g::GNNGraph)
-    st == (;) && return st
+    isempty(st) && return st
     for (key, val) in pairs(st)
         if key == :graph
-            st = merge(st, (graph=copy(g),))
+            st = merge(st, (graph = copy(g),))
         elseif val isa NamedTuple
             st = merge(st, (key => updategraph(val, g),))
         end
