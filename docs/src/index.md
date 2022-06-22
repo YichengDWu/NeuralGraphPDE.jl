@@ -27,7 +27,7 @@ Random.seed!(rng, 0)
 ps, st = Lux.setup(rng, l)
 
 # forward pass
-y, st = l(x, ps, st)    # you don't need to feed a graph explicitly in the forward pass
+y, st = l(x, ps, st)    # you don't need to feed a graph explicitly
 
 #change the graph
 new_g = rand_graph(5, 7, bidirected=false)
@@ -57,5 +57,5 @@ ps, st = Lux.setup(rng, model)
 y, st = model(x, ps, st)
 ```
 
-- An unified interface. As pointed out [here](https://discourse.julialang.org/t/using-a-variable-graph-structure-with-neuralode-and-gcnconv/78881), GNNs are difficult to work well with other neural networks when the input graph is changing. This will not be an issue here. You have an unified interface `y, st = model(x, ps, st)`.
+- An unified interface for graph level tasks. As pointed out [here](https://discourse.julialang.org/t/using-a-variable-graph-structure-with-neuralode-and-gcnconv/78881), GNNs are difficult to work well with other neural networks when the input graph is changing. This will not be an issue here. You have an unified interface `y, st = model(x, ps, st)`. In `GraphNeuralNetwork.jl`, you can use `Chain(GNNChain(...), Dense(...))` for graph levels tasks but you will not be able to feed a graph to `Chain(Dense(...), GNNChain(...))`.
 - Having node embeddings and other nontrainable features such as spaital coordinates? Thanks to [Lux](http://lux.csail.mit.edu/dev/manual/migrate_from_flux/#implementing-custom-layers), trainable parameters and nonntrainable parameters are seperately stored in `x` and `st`. 
