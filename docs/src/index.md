@@ -10,9 +10,9 @@ Documentation for [NeuralGraphPDE](https://github.com/MilkshakeForReal/NeuralGra
 ## Features
 
 - Layers and graphs are coupled and decoupled at the same time: You can bind a graph to a layer at initialization, but the graph
-  is stored in `st`. They are decoupled in the sense that you can easily update or change the graph by changing `st`:
+  is stored in `st`, not in the layer. They are decoupled in the sense that you can easily update or change the graph by changing `st`:
   
-```julia
+```@example demo
 using NeuralGraphPDE, GraphNeuralNetworks, Random, Lux
 g = rand_graph(5, 4, bidirected=false)
 x = randn(3, g.num_nodes)
@@ -38,7 +38,7 @@ y = l(x, ps, st)
 
 - For node level problems, you can define the graph only once and forget it. The way to do it is to overload `initalgraph`:
   
-```julia
+```@example demo
 import NeuralGraphPDE: initialgraph
 g = rand_graph(5, 4, bidirected=false)
 x = randn(3, g.num_nodes)
