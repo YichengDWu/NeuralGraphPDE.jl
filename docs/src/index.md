@@ -9,7 +9,7 @@ Documentation for [NeuralGraphPDE](https://github.com/MilkshakeForReal/NeuralGra
 
 ## Why `Lux`?
 
-- Layers and graphs are coupled and decoupled at the same time: You can bind the a graph to a layer at initialization, but the graph
+- Layers and graphs are coupled and decoupled at the same time: You can bind a graph to a layer at initialization, but the graph
   is stored in `st`. They are decoupled in the sense that you can easily update or change the graph by changing `st`:
   
 ```julia
