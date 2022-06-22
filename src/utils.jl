@@ -13,4 +13,4 @@ copy(g::GNNGraph) = GNNGraph(g)
     updategraph(st, g) -> st
 Replace the value of `st.graph` with a shallow copy of `g`.
 """
-updategraph(st::NamedTuple,g::GNNGraph) = merge(st,(graph=copy(g)))
+updategraph(st::NamedTuple,g::GNNGraph) = merge(st,(graph=copy(g),))
