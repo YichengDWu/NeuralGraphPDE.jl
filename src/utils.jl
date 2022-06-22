@@ -17,7 +17,7 @@ function updategraph(st::NamedTuple, g::GNNGraph)
     isempty(st) && return st
     for (key, val) in pairs(st)
         if key == :graph
-            st = merge(st, (graph = copy(g),))
+            st = merge(st, (graph=copy(g),))
         elseif val isa NamedTuple
             st = merge(st, (key => updategraph(val, g),))
         end
