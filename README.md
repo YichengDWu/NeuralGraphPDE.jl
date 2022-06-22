@@ -9,7 +9,7 @@ This package is based on hacking [GraphNeuralNetwork.jl](https://github.com/Carl
 
 The goal is to extend Neural (Graph) ODE to Neural Graph PDE (WIP). Be aware of potential breaking changes.
 
-This library will focus on **equivariant** GNNs.
+This library will focus on (a fews) **equivariant** GNNs. This is not a general GNN package.
 
 ## Ref 
 1. Iakovlev V, Heinonen M, Lähdesmäki H. Learning continuous-time PDEs from sparse data with graph neural networks[J]. arXiv preprint arXiv:2006.08956, 2020.
