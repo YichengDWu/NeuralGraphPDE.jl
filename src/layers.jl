@@ -29,12 +29,25 @@ wrapgraph(f::Function) = f
 - `ϕ`: A neural network. 
 - `aggr`: Aggregation operator for the incoming messages (e.g. `+`, `*`, `max`, `min`, and `mean`).
 
-# Input 
-- Case1: 
-    - `ndata`: NamedTuple `(u=u,...,x=x)` where `u` is the node embedding and `x` is the spatial coordinate.
-- Case2: 
-    - `ndata`: NamedTuple or Array.
-    - `edata`: Array of spatial differences.
+# Inputs
+    - `ndata`: `NamedTuple` or `Array`.
+
+# Examples
+```julia
+
+s = [1, 1, 2, 3]
+t = [2, 3, 1, 1]
+g = GNNGraph(s, t)
+
+u = randn(4, g.num_nodes)
+g = GNNGraph(g, ndata = (; x = rand(3, g.num_nodes)))
+nn = Dense(4 + 4 + 3 => 5)
+l = ExplicitEdgeConv(nn, initialgraph=g)
+
+ps, st = Lux.setup(rng, l)
+
+```
+
 """
 struct ExplicitEdgeConv{F,M<:AbstractExplicitLayer} <:
        AbstractGNNContainerLayer{(:ϕ,)}
@@ -45,22 +58,8 @@ end
 
 ExplicitEdgeConv(ϕ; initialgraph=initialgraph, aggr=mean) = ExplicitEdgeConv(wrapgraph(initialgraph), ϕ, aggr)
 
-function (l::ExplicitEdgeConv)(ndata::AbstractArray, edata::AbstractArray,
-                               ps, st::NamedTuple)
-    g = st.graph
-    function message(xi, xj, e, ps, st)
-        return l.ϕ(cat(xi, xj, e, dims=1), ps, st)
-    end
-    return propagate(message, g, l.aggr, ps, st.ϕ, xi=ndata, xj=ndata, e=edata)
-end
-
-function (l::ExplicitEdgeConv)((ndata, edata)::NTuple{2,NamedTuple},
-                               ps, st::NamedTuple)
-    g = st.graph
-    function message(xi, xj, e, ps, st)
-        return l.ϕ(cat(values(xi)..., values(xj)..., e, dims=1), ps, st)
-    end
-    return propagate(message, g, l.aggr, ps, st.ϕ, xi=ndata, xj=ndata, e=edata)
+function (l::ExplicitEdgeConv)(x::AbstractArray, ps, st::NamedTuple)
+    return l((preservedname=x,), ps, st)
 end
 
 function (l::ExplicitEdgeConv)(x::NamedTuple, ps, st::NamedTuple)
@@ -68,13 +67,15 @@ function (l::ExplicitEdgeConv)(x::NamedTuple, ps, st::NamedTuple)
     g = st.graph
     s = g.ndata  #nontrainable node data
 
-    function message(ndatai, ndataj, e)
-        xi, xj = ndatai.x, ndataj.x
-        hi, hj = drop(ndatai, :x), drop(ndataj, :x)
-        return l.ϕ(cat(values(hi)..., values(hj)..., xj - xi, dims=1), ps, st.ϕ)
+    function message(xi, xj, e)
+        posi, posj = xi.x, xj.x
+        hi, hj = drop(xi, :x), drop(xj, :x)
+        m, st_ϕ = l.ϕ(cat(values(hi)..., values(hj)..., posj - posi, dims=1), ps, st.ϕ)
+        st = merge(st, (ϕ=st_ϕ,))
+        return m
     end
-    xs = merge(s, s)
-    return propagate(message, g, l.aggr, xi=xs, xj=xs)
+    xs = merge(x, s)
+    return propagate(message, g, l.aggr, xi=xs, xj=xs), st
 end
 
 """

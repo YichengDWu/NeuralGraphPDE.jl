@@ -24,19 +24,15 @@ using Test
         end
 
         @testset "edge" begin
-            x = randn(3, g.num_nodes)
-            u = rand(4, g.num_nodes)
+            u = randn(4, g.num_nodes)
+            g = GNNGraph(g, ndata=(; x=rand(3, g.num_nodes)))
             nn = Dense(4 + 4 + 3 => 5)
             l = ExplicitEdgeConv(nn, initialgraph=g)
 
             ps, st = Lux.setup(rng, l)
             @test st == (ϕ=NamedTuple(), graph=g)
-            y, _ = l((u=u, x=x), ps, st)
+            y, _ = l(u, ps, st)
             @test size(y) == (5, g.num_nodes)
-
-            e = x[:, s] - x[:, t]
-            y2, _ = l(u, e, ps, st)
-            @test y2 == y
         end
     end
 end
