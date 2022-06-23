@@ -1,4 +1,3 @@
-
 ```@meta
 CurrentModule = NeuralGraphPDE
 ```
