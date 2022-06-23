@@ -1,7 +1,11 @@
+@doc doc """
+    AbstractGNNLayer <: AbstractExplicitLayer
+An abstract type of graph neural networks. See also [`AbstractGNNContainerLayer`](@ref)
+"""
 abstract type AbstractGNNLayer <: AbstractExplicitLayer end
 
 @doc doc"""
-    AbstractGNNContainerLayer{layers} <: AbstractExplicitContainerLayer{layers}
+    AbstractGNNContainerLayer <: AbstractExplicitContainerLayer
 
 This is an abstract type of GNN layers that contains other layers.
 """
