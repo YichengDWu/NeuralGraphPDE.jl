@@ -6,11 +6,6 @@ CurrentModule = NeuralGraphPDE
 
 Documentation for [NeuralGraphPDE](https://github.com/MilkshakeForReal/NeuralGraphPDE.jl).
 
-```@index
-Modules = [NeuralGraphPDE]
-Pages = ["index.md"]
-```
-
 ## Features
 
 - Layers and graphs are coupled and decoupled at the same time: You can bind a graph to a layer at initialization, but the graph
@@ -62,11 +57,11 @@ y, st = model(x, ps, st)
 ```
 
 - An unified interface for graph level tasks. As pointed out [here](https://discourse.julialang.org/t/using-a-variable-graph-structure-with-neuralode-and-gcnconv/78881), GNNs are difficult to work well with other neural networks when the input graph is changing. This will not be an issue here. You have an unified interface `y, st = model(x, ps, st)`. In `GraphNeuralNetwork.jl`, you can use `Chain(GNNChain(...), Dense(...))` for graph levels tasks but you will not be able to feed a graph to `Chain(Dense(...), GNNChain(...))`.
-- Having node embeddings and other nontrainable features such as spaital coordinates? Thanks to [Lux](http://lux.csail.mit.edu/dev/manual/migrate_from_flux/#implementing-custom-layers), trainable parameters and nonntrainable parameters are seperately stored in `x` and `st`. 
+- Having node embeddings and other nontrainable features such as spaital coordinates? Thanks to [Lux](http://lux.csail.mit.edu/dev/manual/migrate_from_flux/#implementing-custom-layers), trainable parameters and nonntrainable parameters are seperately stored in `x` and `st`. We will not have to unpack and merge them over and over again.
 
 ## Implementing custom layers
 
-`NeuralGraphPDE` share the basically same interface with `Lux.jl`. You may want to take a look at its [doc](http://lux.csail.mit.edu/dev/manual/migrate_from_flux/#implementing-custom-layers) first. Based on that, `NeuralGraphPDE` provides two abstract types, `AbstractGNNLayer` and `AbstractGNNContainerLayer`, they are subtypes of `AbstractExplicitLayer` and `AbstractExplicitContainerLayer`, respectively. 
+`NeuralGraphPDE` basically share the same interface with `Lux.jl`. You may want to take a look at its [doc](http://lux.csail.mit.edu/dev/manual/migrate_from_flux/#implementing-custom-layers) first. Based on that, `NeuralGraphPDE` provides two abstract types, `AbstractGNNLayer` and `AbstractGNNContainerLayer`, they are subtypes of `AbstractExplicitLayer` and `AbstractExplicitContainerLayer`, respectively. You should subtype your custom layers to them.
 
 ### AbstractGNNLayer
 You can define a custom layer with the following steps:
@@ -92,10 +87,11 @@ function MyGNNLayer(...; initialgraph=initialgraph)
   MyGNNLayer{typeof(initialgraph), ...}(initialgraph,...)
 end
 ```
-4. Define the forward pass. Keep in mind that the graph is stored in `st`.
+4. Define the forward pass. Keep in mind that the graph is stored in `st`. It is recommended to store nontrainable node features on the graph.
 ```julia
 function (l::MyGNNLayer)(x,ps,st)
   g = st.graph
+  s = g.ndata # nontrainable node features
   ...
   return y, st
 end
