@@ -18,7 +18,7 @@ Creater a function wrapper of the input graph.
 wrapgraph(g::GNNGraph) = () -> copy(g)
 wrapgraph(f::Function) = f
 
-"""
+@doc doc"""
     updategraph(st, g) -> st
 Recursively replace the value of `graph` with a shallow copy of `g`.
 """
