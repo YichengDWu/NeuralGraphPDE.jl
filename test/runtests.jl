@@ -30,7 +30,7 @@ using Test
             l = ExplicitEdgeConv(nn, initialgraph=g)
 
             ps, st = Lux.setup(rng, l)
-            @test st == (ϕ=(;), graph=g)
+            @test st == (ϕ=NamedTuple(), graph=g)
             y, _ = l((u=u, x=x), ps, st)
             @test size(y) == (5, g.num_nodes)
 
@@ -40,3 +40,24 @@ using Test
         end
     end
 end
+
+@testset "utilities" begin @testset "updategraph" begin
+    g = rand_graph(5, 4, bidirected=false)
+    x = randn(3, g.num_nodes)
+
+    l = ExplicitGCNConv(3 => 5, initialgraph=g)
+
+    rng = Random.default_rng()
+    Random.seed!(rng, 0)
+
+    ps, st = Lux.setup(rng, l)
+    new_g = rand_graph(5, 7, bidirected=false)
+    new_st = updategraph(st, new_g)
+    @test new_st.graph === new_g
+
+    model = Chain(ExplicitGCNConv(3 => 5, initialgraph=g),
+                  ExplicitGCNConv(5 => 5, initialgraph=g))
+    ps, st = Lux.setup(rng, model)
+    new_st = updategraph(st, new_g)
+    @test new_st.layer_1.graph === new_st.layer_2.graph === new_g
+end end
