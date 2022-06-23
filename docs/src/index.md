@@ -89,7 +89,7 @@ function MyGNNLayer(...; initialgraph=initialgraph)
   MyGNNLayer{typeof(initialgraph), ...}(initialgraph,...)
 end
 ```
-Step 4. Define the forward pass. Keep in mind that the graph is stored in `st`. It is recommended to store nontrainable node features on the graph.
+Step 4. Define the forward pass. Keep in mind that the graph is stored in `st`. It is recommended to store nontrainable node features in the graph.
 ```julia
 function (l::MyGNNLayer)(x,ps,st)
   g = st.graph
@@ -98,3 +98,5 @@ function (l::MyGNNLayer)(x,ps,st)
   return y, st
 end
 ```
+
+## AbstractExplicitContainerLayer
