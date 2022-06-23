@@ -65,14 +65,16 @@ y, st = model(x, ps, st)
 
 ### AbstractGNNLayer
 You can define a custom layer with the following steps:
-1. Define your type of the layer and add `initialgraph` as a field.
+
+Step 1. Define your type of the layer and add `initialgraph` as a field.
 ```
 struct MyGNNLayer{F} <: AbstractGNNLayer
     initialgraph::F
     ...
 end
 ```
-2. Define `initialparameters` as in `Lux`. The default `initialstates` returns `(graph = GNNGraph(...))`, so this is optional. If you want to put more things in `st` then you need to overload `initialstates` as well. 
+
+Step 2. Define `initialparameters` as in `Lux`. The default `initialstates` returns `(graph = GNNGraph(...))`, so this is optional. If you want to put more things in `st` then you need to overload `initialstates` as well. 
 ```julia
 initialstates(rng::AbstractRNG, l::AbstractGNNLayer) = (graph=l.initialgraph(), other states)
 ```
@@ -80,14 +82,14 @@ In this case, it is recommended to also overload `statelength`, it should be lik
 ```julia
 statelength(l::AbstractGNNLayer) = 1 + length(other states) # 1 for the graph
 ```
-3. Define the constructor(s) that have the keyword argument `initialgraph=initialgraph`.
+Step 3. Define the constructor(s) that have the keyword argument `initialgraph=initialgraph`.
 ```julia
 function MyGNNLayer(...; initialgraph=initialgraph)
   initalgraph = wrapgraph(initialgraph) # always wrap initialgraph so the input can be a graph or a function
   MyGNNLayer{typeof(initialgraph), ...}(initialgraph,...)
 end
 ```
-4. Define the forward pass. Keep in mind that the graph is stored in `st`. It is recommended to store nontrainable node features on the graph.
+Step 4. Define the forward pass. Keep in mind that the graph is stored in `st`. It is recommended to store nontrainable node features on the graph.
 ```julia
 function (l::MyGNNLayer)(x,ps,st)
   g = st.graph
