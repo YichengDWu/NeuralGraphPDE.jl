@@ -1,5 +1,6 @@
 abstract type AbstractGNNLayer <: AbstractExplicitLayer end
-"""
+
+@doc doc"""
     AbstractGNNContainerLayer{layers} <: AbstractExplicitContainerLayer{layers}
 
 This is an abstract type of GNN layers that contains other layers.
@@ -66,7 +67,7 @@ ps, st = Lux.setup(rng, l)
 
 ```
 
-"""
+@doc doc"""
 struct ExplicitEdgeConv{F, M <: AbstractExplicitLayer} <:
        AbstractGNNContainerLayer{(:ϕ,)}
     initialgraph::F
@@ -98,7 +99,7 @@ function (l::ExplicitEdgeConv)(x::NamedTuple, ps, st::NamedTuple)
     return propagate(message, g, l.aggr, xi = xs, xj = xs), st
 end
 
-"""
+@doc doc"""
     ExplicitGCNConv(in_chs::Int, out_chs::Int, activation = identity;
                     initialgraph = initialgraph, init_weight = glorot_normal,
                     init_bias = zeros32)
