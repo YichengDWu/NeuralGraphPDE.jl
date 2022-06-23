@@ -27,7 +27,7 @@ wrapgraph(f::Function) = f
 @doc doc"""
     ExplicitEdgeConv(ϕ; initialgraph = initialgraph, aggr = mean)
 
-Edge convolutional layer.
+Edge convolutional layer from [Learning continuous-time PDEs from sparse data with graph neural networks](https://arxiv.org/abs/2006.08956).
 
 ``\mathbf{u}_i' = \square_{j \in N(i)}\, \phi([\mathbf{u}_i, \mathbf{u}_j; \mathbf{x}_j - \mathbf{x}_i])``
 
@@ -39,7 +39,7 @@ Edge convolutional layer.
 
 ## Inputs
 
-    - Node embeddings, `NamedTuple` or `Array`.
+    - `u`: Trainable node embeddings, `NamedTuple` or `Array`.
 
 ## Returns
 
@@ -51,7 +51,7 @@ Edge convolutional layer.
 
 ## States
 
-    - `graph`: `GNNGraph` where `graph.ndata.x` represents the spatial coordinates of nodes.
+    - `graph`: `GNNGraph` where `graph.ndata.x` represents the spatial coordinates of nodes. You can also put other nontrainable node features in `graph.ndata` with arbitrary keys. They will be concatenated like `u`.
 
 ## Examples
 ```julia
