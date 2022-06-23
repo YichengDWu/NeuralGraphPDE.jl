@@ -40,7 +40,7 @@ struct ExplicitEdgeConv{F,M<:AbstractExplicitLayer} <:
        AbstractGNNContainerLayer{(:ϕ,)}
     initialgraph::F
     ϕ::M
-    aggr::Any
+    aggr::Function
 end
 
 ExplicitEdgeConv(ϕ; initialgraph=initialgraph, aggr=mean) = ExplicitEdgeConv(wrapgraph(initialgraph), ϕ, aggr)
@@ -63,15 +63,18 @@ function (l::ExplicitEdgeConv)((ndata, edata)::NTuple{2,NamedTuple},
     return propagate(message, g, l.aggr, ps, st.ϕ, xi=ndata, xj=ndata, e=edata)
 end
 
-function (l::ExplicitEdgeConv)(ndata::NamedTuple,
-                               ps, st::NamedTuple)
+function (l::ExplicitEdgeConv)(x::NamedTuple, ps, st::NamedTuple)
+    # the spatial coordinate x should be in st
     g = st.graph
-    function message(ndatai, ndataj, e, ps, st)
+    s = g.ndata  #nontrainable node data
+
+    function message(ndatai, ndataj, e)
         xi, xj = ndatai.x, ndataj.x
         hi, hj = drop(ndatai, :x), drop(ndataj, :x)
-        return l.ϕ(cat(values(hi)..., values(hj)..., xj - xi, dims=1), ps, st)
+        return l.ϕ(cat(values(hi)..., values(hj)..., xj - xi, dims=1), ps, st.ϕ)
     end
-    return propagate(message, g, l.aggr, ps, st.ϕ, xi=ndata, xj=ndata)
+    xs = merge(s, s)
+    return propagate(message, g, l.aggr, xi=xs, xj=xs)
 end
 
 """
