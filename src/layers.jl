@@ -21,9 +21,6 @@ function statelength(l::AbstractGNNContainerLayer{layers}) where {layers}
     return sum(statelength, getfield.((l,), layers)) + 1
 end
 
-wrapgraph(g::GNNGraph) = () -> copy(g)
-wrapgraph(f::Function) = f
-
 @doc doc"""
     ExplicitEdgeConv(ϕ; initialgraph = initialgraph, aggr = mean)
 
