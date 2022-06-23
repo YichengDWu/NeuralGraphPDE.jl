@@ -102,17 +102,15 @@ function (l::ExplicitEdgeConv)(x::NamedTuple, ps, st::NamedTuple)
 end
 
 """
-    ExplicitGCNConv()
+    ExplicitGCNConv(in_chs::Int, out_chs::Int, activation = identity;
+                    initialgraph = initialgraph, init_weight = glorot_normal,
+                    init_bias = zeros32)
 
-Same as the one in GraphNeuralNetworks.jl but with exiplicit paramters
+Same as the one in GraphNeuralNetworks.jl but with exiplicit paramters.
 
 # Arguments
     
-- `in_chs`: 
-- `out_chs`:
-- `activation`:
-- `add_self_loops`: 
-- `use_edge_weight`:
+    - `initialgraph`: `GNNGraph` or a function that returns a `GNNGraph`
     
 # Examples
 
