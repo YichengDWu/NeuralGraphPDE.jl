@@ -30,7 +30,7 @@ using Test
             l = ExplicitEdgeConv(nn, initialgraph=g)
 
             ps, st = Lux.setup(rng, l)
-            @test st == (ϕ=(;), graph=g)
+            @test st == (ϕ=NamedTuple(), graph=g)
             y, _ = l((u=u, x=x), ps, st)
             @test size(y) == (5, g.num_nodes)
 
