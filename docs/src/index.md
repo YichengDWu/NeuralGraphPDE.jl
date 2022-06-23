@@ -13,11 +13,11 @@ Documentation for [NeuralGraphPDE](https://github.com/MilkshakeForReal/NeuralGra
 
 ```@example demo
 using NeuralGraphPDE, GraphNeuralNetworks, Random, Lux
-g = rand_graph(5, 4, bidirected=false)
+g = rand_graph(5, 4, bidirected = false)
 x = randn(3, g.num_nodes)
 
 # create layer
-l = ExplicitGCNConv(3 => 5, initialgraph=g)
+l = ExplicitGCNConv(3 => 5, initialgraph = g)
 
 # setup layer
 rng = Random.default_rng()
@@ -29,7 +29,7 @@ ps, st = Lux.setup(rng, l)
 y, st = l(x, ps, st)    # you don't need to feed a graph explicitly
 
 #change the graph
-new_g = rand_graph(5, 7, bidirected=false)
+new_g = rand_graph(5, 7, bidirected = false)
 st = updategraph(st, new_g)
 
 y, st = l(x, ps, st)
@@ -39,7 +39,7 @@ y, st = l(x, ps, st)
 
 ```@example demo
 import NeuralGraphPDE: initialgraph
-g = rand_graph(5, 4, bidirected=false)
+g = rand_graph(5, 4, bidirected = false)
 x = randn(3, g.num_nodes)
 
 initialgraph() = copy(g)
@@ -79,7 +79,9 @@ end
 Step 2. Define `initialparameters` as in `Lux`. The default `initialstates` returns `(graph = GNNGraph(...))`, so this is optional. If you want to put more things in `st` then you need to overload `initialstates` as well.
 
 ```julia
-initialstates(rng::AbstractRNG, l::AbstractGNNLayer) = (graph=l.initialgraph(), otherstates)
+function initialstates(rng::AbstractRNG, l::AbstractGNNLayer)
+    (graph = l.initialgraph(), otherstates)
+end
 ```
 
 In this case, it is recommended to also overload `statelength`, it should be like

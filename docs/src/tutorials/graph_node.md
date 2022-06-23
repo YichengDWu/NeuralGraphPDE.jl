@@ -43,7 +43,7 @@ epochs = 40
 ## Define Neural ODE
 
 ```@example gnode
-struct NeuralODE{M<:Lux.AbstractExplicitLayer,So,Se,T,K} <:
+struct NeuralODE{M <: Lux.AbstractExplicitLayer, So, Se, T, K} <:
        Lux.AbstractExplicitContainerLayer{(:model,)}
     model::M
     solver::So
@@ -53,9 +53,9 @@ struct NeuralODE{M<:Lux.AbstractExplicitLayer,So,Se,T,K} <:
 end
 
 function NeuralODE(model::Lux.AbstractExplicitLayer;
-                   solver=Tsit5(),
-                   sensealg=InterpolatingAdjoint(; autojacvec=ZygoteVJP()),
-                   tspan=(0.0f0, 1.0f0),
+                   solver = Tsit5(),
+                   sensealg = InterpolatingAdjoint(; autojacvec = ZygoteVJP()),
+                   tspan = (0.0f0, 1.0f0),
                    kwargs...)
     return NeuralODE(model, solver, sensealg, tspan, kwargs)
 end
@@ -66,13 +66,13 @@ function (n::NeuralODE)(x, ps, st)
         return u_
     end
     prob = ODEProblem{false}(ODEFunction{false}(dudt), x, n.tspan, ps)
-    return solve(prob, n.solver; sensealg=n.sensealg, n.kwargs...), st
+    return solve(prob, n.solver; sensealg = n.sensealg, n.kwargs...), st
 end
 
-function diffeqsol_to_array(x::ODESolution{T,N,<:AbstractVector{<:CuArray}}) where {T,N}
-    return dropdims(gpu(x); dims=3)
+function diffeqsol_to_array(x::ODESolution{T, N, <:AbstractVector{<:CuArray}}) where {T, N}
+    return dropdims(gpu(x); dims = 3)
 end
-diffeqsol_to_array(x::ODESolution) = dropdims(Array(x); dims=3)
+diffeqsol_to_array(x::ODESolution) = dropdims(Array(x); dims = 3)
 ```
 
 ## Create and initialize the Neural Graph ODE layer
@@ -84,8 +84,8 @@ function create_model()
                        ExplicitGCNConv(nhidden => nhidden, relu))
 
     node = NeuralODE(node_chain,
-                     save_everystep=false,
-                     reltol=1e-3, abstol=1e-3, save_start=false)
+                     save_everystep = false,
+                     reltol = 1e-3, abstol = 1e-3, save_start = false)
 
     model = Chain(ExplicitGCNConv(nin => nhidden, relu),
                   node,
@@ -106,7 +106,7 @@ end
 ## Define the loss function
 
 ```@example gnode
-logitcrossentropy(ŷ, y) = mean(-sum(y .* logsoftmax(ŷ); dims=1))
+logitcrossentropy(ŷ, y) = mean(-sum(y .* logsoftmax(ŷ); dims = 1))
 
 function loss(x, y, mask, model, ps, st)
     ŷ, st = model(x, ps, st)
@@ -117,7 +117,7 @@ function eval_loss_accuracy(X, y, mask, model, ps, st)
     ŷ, _ = model(X, ps, st)
     l = logitcrossentropy(ŷ[:, mask], y[:, mask])
     acc = mean(onecold(ŷ[:, mask]) .== onecold(y[:, mask]))
-    return (loss=round(l, digits=4), acc=round(acc * 100, digits=2))
+    return (loss = round(l, digits = 4), acc = round(acc * 100, digits = 2))
 end
 ```
 

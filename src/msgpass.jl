@@ -7,7 +7,8 @@
 - `ps`: Parameters of the neural network inside the function `f`
 - `st`: State of the neural network inside the function `f`
 """
-function apply_edges(f, g::GNNGraph, ps::NamedTuple, st::NamedTuple; xi=nothing, xj=nothing, e=nothing)
+function apply_edges(f, g::GNNGraph, ps::NamedTuple, st::NamedTuple; xi = nothing,
+                     xj = nothing, e = nothing)
     return apply_edges(f, g, xi, xj, e, ps, st)
 end
 
@@ -22,7 +23,8 @@ end
 """
     propagate(f, g, aggr, ps, st; xi, xj, e)  ->  m̄
 """
-function propagate(f, g::GNNGraph, aggr, ps::NamedTuple, st::NamedTuple; xi=nothing, xj=nothing, e=nothing)
+function propagate(f, g::GNNGraph, aggr, ps::NamedTuple, st::NamedTuple; xi = nothing,
+                   xj = nothing, e = nothing)
     return propagate(f, g, aggr, xi, xj, e, ps, st)
 end
 
