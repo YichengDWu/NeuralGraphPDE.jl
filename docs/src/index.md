@@ -6,6 +6,10 @@ CurrentModule = NeuralGraphPDE
 
 Documentation for [NeuralGraphPDE](https://github.com/MilkshakeForReal/NeuralGraphPDE.jl).
 
+```@index
+Modules = [NeuralGraphPDE]
+Pages = ["index.md"]
+```
 
 ## Features
 
@@ -59,3 +63,40 @@ y, st = model(x, ps, st)
 
 - An unified interface for graph level tasks. As pointed out [here](https://discourse.julialang.org/t/using-a-variable-graph-structure-with-neuralode-and-gcnconv/78881), GNNs are difficult to work well with other neural networks when the input graph is changing. This will not be an issue here. You have an unified interface `y, st = model(x, ps, st)`. In `GraphNeuralNetwork.jl`, you can use `Chain(GNNChain(...), Dense(...))` for graph levels tasks but you will not be able to feed a graph to `Chain(Dense(...), GNNChain(...))`.
 - Having node embeddings and other nontrainable features such as spaital coordinates? Thanks to [Lux](http://lux.csail.mit.edu/dev/manual/migrate_from_flux/#implementing-custom-layers), trainable parameters and nonntrainable parameters are seperately stored in `x` and `st`. 
+
+## Implementing custom layers
+
+`NeuralGraphPDE` share the basically same interface with `Lux.jl`. You may want to take a look at its [doc](http://lux.csail.mit.edu/dev/manual/migrate_from_flux/#implementing-custom-layers) first. Based on that, `NeuralGraphPDE` provides two abstract types, `AbstractGNNLayer` and `AbstractGNNContainerLayer`, they are subtypes of `AbstractExplicitLayer` and `AbstractExplicitContainerLayer`, respectively. 
+
+### AbstractGNNLayer
+You can define a custom layer with the following steps:
+1. Define your type of the layer and add `initialgraph` as a field.
+```
+struct MyGNNLayer{F} <: AbstractGNNLayer
+    initialgraph::F
+    ...
+end
+```
+2. Define `initialparameters` as in `Lux`. The default `initialstates` returns `(graph = GNNGraph(...))`, so this is optional. If you want to put more things in `st` then you need to overload `initialstates` as well. 
+```julia
+initialstates(rng::AbstractRNG, l::AbstractGNNLayer) = (graph=l.initialgraph(), other states)
+```
+In this case, it is recommended to also overload `statelength`, it should be like
+```julia
+statelength(l::AbstractGNNLayer) = 1 + length(other states) # 1 for the graph
+```
+3. Define the constructor(s) that have the keyword argument `initialgraph=initialgraph`.
+```julia
+function MyGNNLayer(...; initialgraph=initialgraph)
+  initalgraph = wrapgraph(initialgraph) # always wrap initialgraph so the input can be a graph or a function
+  MyGNNLayer{typeof(initialgraph), ...}(initialgraph,...)
+end
+```
+4. Define the forward pass. Keep in mind that the graph is stored in `st`.
+```julia
+function (l::MyGNNLayer)(x,ps,st)
+  g = st.graph
+  ...
+  return y, st
+end
+```
