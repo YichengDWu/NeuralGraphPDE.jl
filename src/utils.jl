@@ -13,7 +13,7 @@ copy(g::GNNGraph) = GNNGraph(g)
     wrapgraph(g::GNNGraph) = () -> copy(g)
     wrapgraph(f::Function) = f
 
-Creater a function wrapper of the input function. 
+Creater a function wrapper of the input graph. 
 """
 wrapgraph(g::GNNGraph) = () -> copy(g)
 wrapgraph(f::Function) = f
