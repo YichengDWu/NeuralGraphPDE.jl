@@ -24,16 +24,36 @@ end
 wrapgraph(g::GNNGraph) = () -> copy(g)
 wrapgraph(f::Function) = f
 
-"""
-    ExplicitEdgeConv(ϕ; aggr=max)
-# Arguments
-- `ϕ`: A neural network. 
-- `aggr`: Aggregation operator for the incoming messages (e.g. `+`, `*`, `max`, `min`, and `mean`).
+@doc doc"""
+    ExplicitEdgeConv(ϕ; initialgraph = initialgraph, aggr = mean)
 
-# Inputs
-    - `ndata`: `NamedTuple` or `Array`.
+Edge convolutional layer.
 
-# Examples
+``\mathbf{u}_i' = \square_{j \in N(i)}\, \phi([\mathbf{u}_i, \mathbf{u}_j; \mathbf{x}_j - \mathbf{x}_i])``
+
+## Arguments
+
+    - `ϕ`: A neural network. 
+    - `initialgraph`: `GNNGraph` or a function that returns a `GNNGraph`
+    - `aggr`: Aggregation operator for the incoming messages (e.g. `+`, `*`, `max`, `min`, and `mean`).
+
+## Inputs
+
+    - Node embeddings, `NamedTuple` or `Array`.
+
+## Returns
+
+    - `NamedTuple` or `Array` that is consistent with `x` with different a size of channels.
+
+## Parameters
+
+    - Parameters of `ϕ`.
+
+## States
+
+    - `graph`: `GNNGraph` where `graph.ndata.x` represents the spatial coordinates of nodes.
+
+## Examples
 ```julia
 
 s = [1, 1, 2, 3]
