@@ -9,7 +9,16 @@ Create a shollow copy of the input graph `g`. This is equivalent to `GNNGraph(g)
 """
 copy(g::GNNGraph) = GNNGraph(g)
 
+@doc doc"""
+    wrapgraph(g::GNNGraph) = () -> copy(g)
+    wrapgraph(f::Function) = f
+
+Creater a function wrapper of the input graph. 
 """
+wrapgraph(g::GNNGraph) = () -> copy(g)
+wrapgraph(f::Function) = f
+
+@doc doc"""
     updategraph(st, g) -> st
 Recursively replace the value of `graph` with a shallow copy of `g`.
 """

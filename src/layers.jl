@@ -1,6 +1,11 @@
-abstract type AbstractGNNLayer <: AbstractExplicitLayer end
+@doc doc """
+    AbstractGNNLayer <: AbstractExplicitLayer
+An abstract type of graph neural networks. See also [`AbstractGNNContainerLayer`](@ref)
 """
-    AbstractGNNContainerLayer{layers} <: AbstractExplicitContainerLayer{layers}
+abstract type AbstractGNNLayer <: AbstractExplicitLayer end
+
+@doc doc"""
+    AbstractGNNContainerLayer <: AbstractExplicitContainerLayer
 
 This is an abstract type of GNN layers that contains other layers.
 """
@@ -21,19 +26,36 @@ function statelength(l::AbstractGNNContainerLayer{layers}) where {layers}
     return sum(statelength, getfield.((l,), layers)) + 1
 end
 
-wrapgraph(g::GNNGraph) = () -> copy(g)
-wrapgraph(f::Function) = f
+@doc doc"""
+    ExplicitEdgeConv(ϕ; initialgraph = initialgraph, aggr = mean)
 
-"""
-    ExplicitEdgeConv(ϕ; aggr=max)
-# Arguments
-- `ϕ`: A neural network. 
-- `aggr`: Aggregation operator for the incoming messages (e.g. `+`, `*`, `max`, `min`, and `mean`).
+Edge convolutional layer from [Learning continuous-time PDEs from sparse data with graph neural networks](https://arxiv.org/abs/2006.08956).
 
-# Inputs
-    - `ndata`: `NamedTuple` or `Array`.
+``\mathbf{u}_i' = \square_{j \in N(i)}\, \phi([\mathbf{u}_i, \mathbf{u}_j; \mathbf{x}_j - \mathbf{x}_i])``
 
-# Examples
+## Arguments
+
+    - `ϕ`: A neural network. 
+    - `initialgraph`: `GNNGraph` or a function that returns a `GNNGraph`
+    - `aggr`: Aggregation operator for the incoming messages (e.g. `+`, `*`, `max`, `min`, and `mean`).
+
+## Inputs
+
+    - `u`: Trainable node embeddings, `NamedTuple` or `Array`.
+
+## Returns
+
+    - `NamedTuple` or `Array` that is consistent with `x` with different a size of channels.
+
+## Parameters
+
+    - Parameters of `ϕ`.
+
+## States
+
+    - `graph`: `GNNGraph` where `graph.ndata.x` represents the spatial coordinates of nodes. You can also put other nontrainable node features in `graph.ndata` with arbitrary keys. They will be concatenated like `u`.
+
+## Examples
 ```julia
 
 s = [1, 1, 2, 3]
@@ -49,7 +71,7 @@ ps, st = Lux.setup(rng, l)
 
 ```
 
-"""
+@doc doc"""
 struct ExplicitEdgeConv{F, M <: AbstractExplicitLayer} <:
        AbstractGNNContainerLayer{(:ϕ,)}
     initialgraph::F
@@ -81,18 +103,16 @@ function (l::ExplicitEdgeConv)(x::NamedTuple, ps, st::NamedTuple)
     return propagate(message, g, l.aggr, xi = xs, xj = xs), st
 end
 
-"""
-    ExplicitGCNConv()
+@doc doc"""
+    ExplicitGCNConv(in_chs::Int, out_chs::Int, activation = identity;
+                    initialgraph = initialgraph, init_weight = glorot_normal,
+                    init_bias = zeros32)
 
-Same as the one in GraphNeuralNetworks.jl but with exiplicit paramters
+Same as the one in GraphNeuralNetworks.jl but with exiplicit paramters.
 
 # Arguments
     
-- `in_chs`: 
-- `out_chs`:
-- `activation`:
-- `add_self_loops`: 
-- `use_edge_weight`:
+    - `initialgraph`: `GNNGraph` or a function that returns a `GNNGraph`
     
 # Examples
 
