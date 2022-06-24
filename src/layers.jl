@@ -69,11 +69,12 @@ g = GNNGraph(g, ndata = (; x = rand(3, g.num_nodes)))
 nn = Dense(4 + 4 + 3 => 5)
 l = ExplicitEdgeConv(nn, initialgraph=g)
 
+rng = Random.default_rng()
 ps, st = Lux.setup(rng, l)
 
 ```
 
-@doc raw"""
+"""
 struct ExplicitEdgeConv{F, M <: AbstractExplicitLayer} <:
        AbstractGNNContainerLayer{(:ϕ,)}
     initialgraph::F
