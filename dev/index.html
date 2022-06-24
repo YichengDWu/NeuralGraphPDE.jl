@@ -19,7 +19,7 @@ y, st = l(x, ps, st)    # you don&#39;t need to feed a graph explicitly
 new_g = rand_graph(5, 7, bidirected = false)
 st = updategraph(st, new_g)
 
-y, st = l(x, ps, st)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">([-0.25631230767347757 -0.3034703217707558 … -0.39502487876099085 -0.23782720775848373; -0.20172569871009485 0.19655071282300315 … -0.22321002428272516 0.2965788864023903; … ; -0.053932390789107235 0.6810600432802988 … -0.3726884031887751 0.4291715033080052; 0.02072525183888946 0.30903420125189823 … -0.2897844980527538 0.03489176284328932], (graph = GNNGraph(5, 7),))</code></pre><ul><li>For node level problems, you can define the graph only once and forget it. The way to do it is to overload <code>initalgraph</code>:</li></ul><pre><code class="language-julia hljs">import NeuralGraphPDE: initialgraph
+y, st = l(x, ps, st)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">([-0.1855267106939734 -0.15532694813415193 … 0.15033568618014267 0.005898383108318444; -0.2548816694917075 -0.015473370814754181 … -0.5373499411754852 -0.3221164474492615; … ; 0.3604664915973373 0.6744119383646476 … -0.029215771762958524 0.19020862617437612; 0.4489199550377076 0.5344860174833038 … 0.47417109436814986 0.4309653485670377], (graph = GNNGraph(5, 7),))</code></pre><ul><li>For node level problems, you can define the graph only once and forget it. The way to do it is to overload <code>initalgraph</code>:</li></ul><pre><code class="language-julia hljs">import NeuralGraphPDE: initialgraph
 g = rand_graph(5, 4, bidirected = false)
 x = randn(3, g.num_nodes)
 
@@ -59,14 +59,12 @@ end</code></pre><h3 id="AbstractExplicitContainerLayer"><a class="docs-heading-a
 end</code></pre><p>Note that if you have only one neural layer insider a <code>AbstractExplicitContainerLayer</code>, then the parameters will be reduced but not the states.</p><pre><code class="language-julia hljs">julia&gt; l = ExplicitEdgeConv(nn, initialgraph = g)
 
 
-julia&gt; ps
-rng = Random.default_rng()
+julia&gt; rng = Random.default_rng()
 
 julia&gt; ps, st = Lux.setup(rng, l)
-
 
 julia&gt; ps
 (weight = Float32[0.22180015 -0.09448394 … -0.41880473 -0.49083555; -0.23709725 0.05150031 … 0.48641983 0.14893274; … ; 0.42824164 0.5589718 … -0.5763395 0.18395355; 0.25994122 0.22801241 … 0.59201854 0.3832495], bias = Float32[0.0; 0.0; … ; 0.0; 0.0;;])
 
 julia&gt; st
-(ϕ = NamedTuple(), graph = GNNGraph(3, 4))</code></pre></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="tutorials/graph_node/">Neural Graph Ordinary Differential Equations »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.19 on <span class="colophon-date" title="Friday 24 June 2022 03:53">Friday 24 June 2022</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+(ϕ = NamedTuple(), graph = GNNGraph(3, 4))</code></pre></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="tutorials/graph_node/">Neural Graph Ordinary Differential Equations »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.19 on <span class="colophon-date" title="Friday 24 June 2022 17:28">Friday 24 June 2022</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
