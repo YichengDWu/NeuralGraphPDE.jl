@@ -114,7 +114,7 @@ Same as the one in GraphNeuralNetworks.jl but with exiplicit paramters.
 
 # Arguments
     
-    - `initialgraph`: `GNNGraph` or a function that returns a `GNNGraph`
+- `initialgraph`: `GNNGraph` or a function that returns a `GNNGraph`
     
 # Examples
 
