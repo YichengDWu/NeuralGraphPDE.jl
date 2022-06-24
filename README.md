@@ -14,3 +14,4 @@ This library will focus on (only a few) **equivariant** GNNs. This is not a gene
 ## References
 
  1. Iakovlev V, Heinonen M, Lähdesmäki H. Learning continuous-time PDEs from sparse data with graph neural networks[J]. arXiv preprint arXiv:2006.08956, 2020.
+ 2. Poli M, Massaroli S, Park J, et al. Graph neural ordinary differential equations[J]. arXiv preprint arXiv:1911.07532, 2019.
