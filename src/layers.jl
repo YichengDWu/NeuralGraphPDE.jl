@@ -1,10 +1,10 @@
-@doc doc """
+@doc raw"""
     AbstractGNNLayer <: AbstractExplicitLayer
 An abstract type of graph neural networks. See also [`AbstractGNNContainerLayer`](@ref)
 """
 abstract type AbstractGNNLayer <: AbstractExplicitLayer end
 
-@doc doc"""
+@doc raw"""
     AbstractGNNContainerLayer <: AbstractExplicitContainerLayer
 
 This is an abstract type of GNN layers that contains other layers.
@@ -26,12 +26,14 @@ function statelength(l::AbstractGNNContainerLayer{layers}) where {layers}
     return sum(statelength, getfield.((l,), layers)) + 1
 end
 
-@doc doc"""
+@doc raw"""
     ExplicitEdgeConv(ϕ; initialgraph = initialgraph, aggr = mean)
 
 Edge convolutional layer from [Learning continuous-time PDEs from sparse data with graph neural networks](https://arxiv.org/abs/2006.08956).
 
-``\mathbf{u}_i' = \square_{j \in N(i)}\, \phi([\mathbf{u}_i, \mathbf{u}_j; \mathbf{x}_j - \mathbf{x}_i])``
+```math
+\mathbf{u}_i' = \square_{j \in N(i)}\, \phi([\mathbf{u}_i, \mathbf{u}_j; \mathbf{x}_j - \mathbf{x}_i])
+```
 
 ## Arguments
 
@@ -71,7 +73,7 @@ ps, st = Lux.setup(rng, l)
 
 ```
 
-@doc doc"""
+@doc raw"""
 struct ExplicitEdgeConv{F, M <: AbstractExplicitLayer} <:
        AbstractGNNContainerLayer{(:ϕ,)}
     initialgraph::F
@@ -103,7 +105,7 @@ function (l::ExplicitEdgeConv)(x::NamedTuple, ps, st::NamedTuple)
     return propagate(message, g, l.aggr, xi = xs, xj = xs), st
 end
 
-@doc doc"""
+@doc raw"""
     ExplicitGCNConv(in_chs::Int, out_chs::Int, activation = identity;
                     initialgraph = initialgraph, init_weight = glorot_normal,
                     init_bias = zeros32)
