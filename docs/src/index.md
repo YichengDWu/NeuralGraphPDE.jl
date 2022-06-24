@@ -35,7 +35,7 @@ st = updategraph(st, new_g)
 y, st = l(x, ps, st)
 ```
 
-  - For node level problems, you can define the graph only once and forget it. You can omit the key argument `initalgraph`, and call `updategraph`:
+  - You can omit the key argument `initalgraph` at initialization, and then call `updategraph` on `st`:
 
 ```@example demo
 g = rand_graph(5, 4, bidirected = false)
@@ -47,8 +47,8 @@ model = Chain(ExplicitGCNConv(3 => 5),
 rng = Random.default_rng()
 Random.seed!(rng, 0)
 
-ps, st = Lux.setup(rng, model)
-st = updategraph(st, g)
+ps, st = Lux.setup(rng, model) # st.graph is empty
+st = updategraph(st, g) # put the graph in there
 
 # forward pass
 y, st = model(x, ps, st)
