@@ -37,25 +37,25 @@ Edge convolutional layer from [Learning continuous-time PDEs from sparse data wi
 
 # Arguments
 
-    - `ϕ`: A neural network. 
-    - `initialgraph`: `GNNGraph` or a function that returns a `GNNGraph`
-    - `aggr`: Aggregation operator for the incoming messages (e.g. `+`, `*`, `max`, `min`, and `mean`).
+- `ϕ`: A neural network. 
+- `initialgraph`: `GNNGraph` or a function that returns a `GNNGraph`
+- `aggr`: Aggregation operator for the incoming messages (e.g. `+`, `*`, `max`, `min`, and `mean`).
 
 # Inputs
 
-    - `u`: Trainable node embeddings, `NamedTuple` or `Array`.
+- `u`: Trainable node embeddings, `NamedTuple` or `Array`.
 
 # Returns
 
-    - `NamedTuple` or `Array` that is consistent with `x` with different a size of channels.
+- `NamedTuple` or `Array` that is consistent with `x` with different a size of channels.
 
 # Parameters
 
-    - Parameters of `ϕ`.
+- Parameters of `ϕ`.
 
 # States
 
-    - `graph`: `GNNGraph` where `graph.ndata.x` represents the spatial coordinates of nodes. You can also put other nontrainable node features in `graph.ndata` with arbitrary keys. They will be concatenated like `u`.
+- `graph`: `GNNGraph` where `graph.ndata.x` represents the spatial coordinates of nodes. You can also put other nontrainable node features in `graph.ndata` with arbitrary keys. They will be concatenated like `u`.
 
 # Examples
 ```julia
