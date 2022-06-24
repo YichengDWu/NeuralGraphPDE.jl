@@ -5,7 +5,7 @@
 [![Build Status](https://github.com/MilkshakeForReal/NeuralGraphPDE.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/MilkshakeForReal/NeuralGraphPDE.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/MilkshakeForReal/NeuralGraphPDE.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/MilkshakeForReal/NeuralGraphPDE.jl)
 
-This package is based on [GraphNeuralNetwork.jl](https://github.com/CarloLucibello/GraphNeuralNetworks.jl) and `[Lux.jl](https://github.com/avik-pal/Lux.jl)`to produce explicit GNN layers.
+This package is based on [GraphNeuralNetwork.jl](https://github.com/CarloLucibello/GraphNeuralNetworks.jl) and [Lux.jl](https://github.com/avik-pal/Lux.jl) to produce explicit GNN layers.
 
 The goal is to extend Neural (Graph) ODE to Neural Graph PDE (WIP). Be aware of potential breaking changes.
 
