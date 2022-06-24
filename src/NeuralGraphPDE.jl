@@ -11,7 +11,6 @@ import GraphNeuralNetworks: propagate, apply_edges
 import Lux: initialparameters, parameterlength, statelength, Chain, applychain,
             initialstates
 include("utils.jl")
-#include("msgpass.jl") seems we don't need it! 
 include("layers.jl")
 
 export AbstractGNNLayer, AbstractGNNContainerLayer
