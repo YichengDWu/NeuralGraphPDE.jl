@@ -11,7 +11,13 @@ This is an abstract type of GNN layers that contains other layers.
 """
 abstract type AbstractGNNContainerLayer{layers} <: AbstractExplicitContainerLayer{layers} end
 
-function initialgraph end
+const emptygraph = rand_graph(0, 0)
+
+"""
+    initialgraph() = emptygraph 
+THe default graph initializer for a GNN layer. Return an empty graph.
+"""
+initialgraph() = emptygraph
 
 initialstates(rng::AbstractRNG, l::AbstractGNNLayer) = (graph = l.initialgraph(),)
 statelength(l::AbstractGNNLayer) = 1 #default
