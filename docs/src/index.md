@@ -35,7 +35,7 @@ st = updategraph(st, new_g)
 y, st = l(x, ps, st)
 ```
 
-  - You can omit the key argument `initalgraph` at initialization, and then call `updategraph` on `st` to put the graph in it. All gnn layer can work smoothly with other layers. 
+  - You can omit the key argument `initalgraph` at initialization, and then call `updategraph` on `st` to put the graph in it. All gnn layer can work smoothly with other layers.
 
 ```@example demo
 g = rand_graph(5, 4, bidirected = false)

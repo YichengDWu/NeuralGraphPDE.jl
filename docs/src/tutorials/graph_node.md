@@ -8,7 +8,7 @@ This tutorial is adapted from [SciMLSensitivity](https://sensitivity.sciml.ai/de
 using GraphNeuralNetworks, NeuralGraphPDE, DifferentialEquations
 import NeuralGraphPDE: initialgraph
 using Lux, NNlib, Optimisers, Zygote, Random, ComponentArrays
-using DiffEqSensitivity
+using SciMLSensitivity
 using Statistics: mean
 using MLDatasets: Cora
 using CUDA
