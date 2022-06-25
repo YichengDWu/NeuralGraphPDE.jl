@@ -317,8 +317,7 @@ function (l::VMHConv)(x::NamedTuple, ps, st::NamedTuple)
     function message(xi, xj, e)
         posi, posj = xi.x, xj.x
         hi, hj = values(drop(xi, :x)), values(drop(xj, :x))
-        diff = hj .- hj
-        m, st_ϕ = l.ϕ(cat(hi..., diff..., posi .- posj, dims = 1), ps.ϕ, st.ϕ)
+        m, st_ϕ = l.ϕ(cat(hi..., (hj .- hj)..., posi .- posj, dims = 1), ps.ϕ, st.ϕ)
         st = merge(st, (; ϕ = st_ϕ))
         return m
     end
