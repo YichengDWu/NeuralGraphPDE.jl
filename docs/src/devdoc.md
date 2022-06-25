@@ -1,8 +1,8 @@
-## Implementing custom layers
+# Implementing custom layers
 
 `NeuralGraphPDE` basically share the same interface with `Lux.jl`. You may want to take a look at its [doc](http://lux.csail.mit.edu/dev/manual/migrate_from_flux/#implementing-custom-layers) first. Based on that, `NeuralGraphPDE` provides two abstract types, `AbstractGNNLayer` and `AbstractGNNContainerLayer`, they are subtypes of `AbstractExplicitLayer` and `AbstractExplicitContainerLayer`, respectively. You should subtype your custom layers to them.
 
-### AbstractGNNLayer
+## AbstractGNNLayer
 
 You can define a custom layer with the following steps:
 
@@ -53,7 +53,7 @@ function (l::MyGNNLayer)(x,ps,st)
 end
 ```
 
-### AbstractExplicitContainerLayer
+## AbstractExplicitContainerLayer
 
 You should only subtype your layer to `AbstractExplicitContainerLayer` then
 
