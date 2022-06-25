@@ -17,7 +17,7 @@ const EMPTYGRAPH = rand_graph(0, 0)
     initialgraph() = EMPTYGRAPH
 THe default graph initializer for a GNN layer. Return an empty graph.
 """
-initialgraph() = emptygraph
+initialgraph() = EMPTYGRAPH
 
 initialstates(rng::AbstractRNG, l::AbstractGNNLayer) = (graph = l.initialgraph(),)
 statelength(l::AbstractGNNLayer) = 1 #default
