@@ -294,6 +294,8 @@ rng = Random.default_rng()
 ps, st = Lux.setup(rng, l)
 
 y, st = l(u, ps, st)
+```
+                    
 """
 struct VMHConv{F, M1, M2, A} <: AbstractGNNContainerLayer{(:ϕ, :γ)}
     initialgraph::F
