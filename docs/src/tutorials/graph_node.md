@@ -78,7 +78,6 @@ diffeqsol_to_array(x::ODESolution) = dropdims(Array(x); dims = 3)
 ## Create and initialize the Neural Graph ODE layer
 
 ```@example gnode
-initialgraph() = copy(g)
 function create_model()
     node_chain = Chain(ExplicitGCNConv(nhidden => nhidden, relu),
                        ExplicitGCNConv(nhidden => nhidden, relu))
@@ -96,8 +95,8 @@ function create_model()
     Random.seed!(rng, 0)
 
     ps, st = Lux.setup(rng, model)
-    ps = device(ComponentArray(ps))
-    st = device(st)
+    ps = ComponentArray(ps) |> device
+    st = updategraph(st, g) |> device
 
     return model, ps, st
 end
