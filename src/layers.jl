@@ -35,7 +35,7 @@ end
 @doc raw"""
     ExplicitEdgeConv(ϕ; initialgraph = initialgraph, aggr = mean)
 
-Edge convolutional layer from [Learning continuous-time PDEs from sparse data with graph neural networks](https://arxiv.org/abs/2006.08956).
+Edge convolutional layer.
 
 ```math
 \mathbf{u}_i' = \square_{j \in N(i)}\, \phi([\mathbf{u}_i, \mathbf{u}_j; \mathbf{x}_j - \mathbf{x}_i])
@@ -53,7 +53,7 @@ Edge convolutional layer from [Learning continuous-time PDEs from sparse data wi
 
 # Returns
 
-- `NamedTuple` or `Array` that is consistent with `x` with different a size of channels.
+- `NamedTuple` or `Array` that has the same struct with `x` with different a size of channels.
 
 # Parameters
 
@@ -81,19 +81,20 @@ ps, st = Lux.setup(rng, l)
 ```
 
 """
-struct ExplicitEdgeConv{F, M <: AbstractExplicitLayer} <:
+struct ExplicitEdgeConv{F, M} <:
        AbstractGNNContainerLayer{(:ϕ,)}
     initialgraph::F
     ϕ::M
     aggr::Function
 end
 
-function ExplicitEdgeConv(ϕ; initialgraph = initialgraph, aggr = mean)
+function ExplicitEdgeConv(ϕ::AbstractExplicitLayer; initialgraph = initialgraph,
+                          aggr = mean)
     ExplicitEdgeConv(wrapgraph(initialgraph), ϕ, aggr)
 end
 
 function (l::ExplicitEdgeConv)(x::AbstractArray, ps, st::NamedTuple)
-    return l((preservedname = x,), ps, st)
+    return l((; preservedname = x), ps, st)
 end
 
 function (l::ExplicitEdgeConv)(x::NamedTuple, ps, st::NamedTuple)
@@ -239,4 +240,81 @@ function (l::ExplicitGCNConv)(x::AbstractMatrix{T}, ps, st::NamedTuple,
         x = ps.weight * x
     end
     return l.activation.(x .+ ps.bias), st
+end
+
+@doc raw"""
+    VMHConv()
+
+Convolutional layer from [Learning continuous-time PDEs from sparse data with graph neural networks](https://arxiv.org/abs/2006.08956).
+```math
+\begin{aligned}
+\mathbf{m}_i &= \square_{j \in N(i)}\, \phi(\mathbf{u}_i, \mathbf{u}_j - \mathbf{u}_i; \mathbf{x}_j - \mathbf{x}_i)\\
+\mathbf{u}_i' &= \gamma(\mathbf{u}_i ,\mathbf{m}_i)
+\end{aligned}
+```
+
+# Arguments
+
+- `ϕ`: A neural network. 
+- `γ`: A neural network.
+- `initialgraph`: `GNNGraph` or a function that returns a `GNNGraph`
+- `aggr`: Aggregation operator for the incoming messages (e.g. `+`, `*`, `max`, `min`, and `mean`).
+
+# Inputs
+
+- `u`: Trainable node embeddings, `NamedTuple` or `Array`.
+
+# Returns
+
+- `NamedTuple` or `Array` that has the same struct with `x` with different a size of channels.
+
+# Parameters
+
+- Parameters of `ϕ`.
+- Parameters of `γ`.
+
+# States
+
+- `graph`: `GNNGraph` where `graph.ndata.x` represents the spatial coordinates of nodes.
+
+"""
+struct VMHConv{F, M1, M2, A}
+    <:AbstractGNNContainerLayer{(:ϕ, :γ)}
+    initialgraph::F
+    ϕ::M1
+    γ::M2
+    aggr::A
+end
+
+function VMHConv(ϕ::AbstractExplicitLayer, γ::AbstractExplicitLayer;
+                 initialgraph = initialgraph, aggr = mean)
+    initialgraph = wrapgraph(initialgraph)
+    VMHConv{typeof(initialgraph), typeof(ϕ), typeof(γ), typeof(aggr)}(initialgraph, ϕ, γ,
+                                                                      aggr)
+end
+
+function (l::VMHConv)(x::AbstractArray, ps, st::NamedTuple)
+    return l((; preservedname = x), ps, st)
+end
+
+function (l::VMHConv)(x::NamedTuple, ps, st::NamedTuple)
+    function message(xi, xj, e)
+        posi, posj = xi.x, xj.x
+        hi, hj = drop(xi, :x), drop(xj, :x)
+        m, st_ϕ = l.ϕ(cat(hi, hj - hj, posi - posj, dims = 1), ps.ϕ, st.ϕ)
+        st = merge(st, (; ϕ = st_ϕ))
+        return m
+    end
+
+    g = st.graph
+    s = g.ndata
+
+    xs = merge(x, s)
+
+    m = propagate(message, g, l.aggr, xi = xs, xj = xs)
+
+    y, st_γ = l.γ(cat(values(x)..., m, dims = 1), ps.γ, st.γ)
+    st = merge(st, (; γ = st_γ))
+
+    return y, st
 end

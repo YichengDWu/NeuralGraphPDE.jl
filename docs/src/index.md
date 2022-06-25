@@ -139,7 +139,9 @@ julia> l = ExplicitEdgeConv(nn, initialgraph = g)
 
 julia> rng = Random.default_rng()
 
+
 julia> ps, st = Lux.setup(rng, l)
+
 
 julia> ps
 (weight = Float32[0.22180015 -0.09448394 … -0.41880473 -0.49083555; -0.23709725 0.05150031 … 0.48641983 0.14893274; … ; 0.42824164 0.5589718 … -0.5763395 0.18395355; 0.25994122 0.22801241 … 0.59201854 0.3832495], bias = Float32[0.0; 0.0; … ; 0.0; 0.0;;])
