@@ -4,6 +4,7 @@
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://MilkshakeForReal.github.io/NeuralGraphPDE.jl/dev/)
 [![Build Status](https://github.com/MilkshakeForReal/NeuralGraphPDE.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/MilkshakeForReal/NeuralGraphPDE.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/MilkshakeForReal/NeuralGraphPDE.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/MilkshakeForReal/NeuralGraphPDE.jl)
+[![SciML Code Style](https://img.shields.io/static/v1?label=code%20style&message=SciML&color=9558b2&labelColor=389826)](https://github.com/SciML/SciMLStyle)
 
 This package is based on [GraphNeuralNetwork.jl](https://github.com/CarloLucibello/GraphNeuralNetworks.jl) and [Lux.jl](https://github.com/avik-pal/Lux.jl) to produce explicit GNN layers.
 
