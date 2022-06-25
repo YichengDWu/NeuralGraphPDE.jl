@@ -17,3 +17,5 @@ This library will focus on (only a few) **equivariant** GNNs. This is not a gene
  1. Iakovlev V, Heinonen M, Lähdesmäki H. Learning continuous-time PDEs from sparse data with graph neural networks[J]. arXiv preprint arXiv:2006.08956, 2020.
  2. Poli M, Massaroli S, Park J, et al. Graph neural ordinary differential equations[J]. arXiv preprint arXiv:1911.07532, 2019.
  3. Poli M, Massaroli S, Rabideau C M, et al. Continuous-depth neural models for dynamic graph prediction[J]. arXiv preprint arXiv:2106.11581, 2021.
+ 4. Chamberlain B, Rowbottom J, Gorinova M I, et al. Grand: Graph neural diffusion[C]//International Conference on Machine Learning. PMLR, 2021: 1407-1418.
+ 5. Brandstetter J, Worrall D, Welling M. Message passing neural PDE solvers[J]. arXiv preprint arXiv:2202.03376, 2022.
