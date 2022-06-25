@@ -32,6 +32,7 @@ makedocs(;
                  #  "Message Passing" => "api/messagepassing.md",
                  "Utilities" => "api/utilities.md",
              ],
+             "Developer Documentation" => "devdoc.md"
          ])
 
 deploydocs(;
