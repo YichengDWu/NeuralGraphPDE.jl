@@ -243,7 +243,7 @@ function (l::ExplicitGCNConv)(x::AbstractMatrix{T}, ps, st::NamedTuple,
 end
 
 @doc raw"""
-    VMHConv()
+    VMHConv(ϕ, γ; initialgraph = initialgraph, aggr = mean)
 
 Convolutional layer from [Learning continuous-time PDEs from sparse data with graph neural networks](https://arxiv.org/abs/2006.08956).
 ```math
