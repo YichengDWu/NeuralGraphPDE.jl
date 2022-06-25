@@ -6,11 +6,11 @@
 [![Coverage](https://codecov.io/gh/MilkshakeForReal/NeuralGraphPDE.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/MilkshakeForReal/NeuralGraphPDE.jl)
 [![SciML Code Style](https://img.shields.io/static/v1?label=code%20style&message=SciML&color=9558b2&labelColor=389826)](https://github.com/SciML/SciMLStyle)
 
-This package is based on [GraphNeuralNetwork.jl](https://github.com/CarloLucibello/GraphNeuralNetworks.jl) and [Lux.jl](https://github.com/avik-pal/Lux.jl) to produce explicit GNN layers.
+This package is based on [GraphNeuralNetwork.jl](https://github.com/CarloLucibello/GraphNeuralNetworks.jl) and [Lux.jl](https://github.com/avik-pal/Lux.jl).
 
 The goal is to extend Neural (Graph) ODE to Neural Graph PDE (WIP). Be aware of potential breaking changes.
 
-This library will focus on (only a few) **equivariant** GNNs. This is not a general GNN package.
+This library will focus on (only a few) GNNs related to PDEs. This is not a general GNN package.
 
 ## References
 
