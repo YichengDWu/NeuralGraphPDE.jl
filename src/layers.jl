@@ -105,7 +105,7 @@ function (l::ExplicitEdgeConv)(x::NamedTuple, ps, st::NamedTuple)
     function message(xi, xj, e)
         posi, posj = xi.x, xj.x
         hi, hj = drop(xi, :x), drop(xj, :x)
-        m, st_ϕ = l.ϕ(cat(values(hi)..., values(hj)..., posj - posi, dims = 1), ps, st.ϕ)
+        m, st_ϕ = l.ϕ(cat(values(hi)..., values(hj)..., posj .- posi, dims = 1), ps, st.ϕ)
         st = merge(st, (ϕ = st_ϕ,))
         return m
     end
@@ -277,9 +277,25 @@ Convolutional layer from [Learning continuous-time PDEs from sparse data with gr
 
 - `graph`: `GNNGraph` where `graph.ndata.x` represents the spatial coordinates of nodes.
 
+# Examples
+```julia
+
+s = [1, 1, 2, 3]
+t = [2, 3, 1, 1]
+g = GNNGraph(s, t)
+
+u = randn(4, g.num_nodes)
+g = GNNGraph(g, ndata = (; x = rand(3, g.num_nodes)))
+ϕ = Dense(4 + 4 + 3 => 5)
+γ = Dense(5 + 4 => 7)
+l = VMHConv(ϕ, γ, initialgraph = g)
+
+rng = Random.default_rng()
+ps, st = Lux.setup(rng, l)
+
+y, st = l(u, ps, st)
 """
-struct VMHConv{F, M1, M2, A}
-    <:AbstractGNNContainerLayer{(:ϕ, :γ)}
+struct VMHConv{F, M1, M2, A} <: AbstractGNNContainerLayer{(:ϕ, :γ)}
     initialgraph::F
     ϕ::M1
     γ::M2
@@ -300,8 +316,9 @@ end
 function (l::VMHConv)(x::NamedTuple, ps, st::NamedTuple)
     function message(xi, xj, e)
         posi, posj = xi.x, xj.x
-        hi, hj = drop(xi, :x), drop(xj, :x)
-        m, st_ϕ = l.ϕ(cat(hi, hj - hj, posi - posj, dims = 1), ps.ϕ, st.ϕ)
+        hi, hj = values(drop(xi, :x)), values(drop(xj, :x))
+        diff =  hj .- hj
+        m, st_ϕ = l.ϕ(cat(hi..., diff..., posi .- posj, dims = 1), ps.ϕ, st.ϕ)
         st = merge(st, (; ϕ = st_ϕ))
         return m
     end
