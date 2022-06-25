@@ -34,6 +34,23 @@ using Test
             y, _ = l(u, ps, st)
             @test size(y) == (5, g.num_nodes)
         end
+
+        @testset "VMH" begin
+            u = randn(4, g.num_nodes)
+            g = GNNGraph(g, ndata = (; x = rand(3, g.num_nodes)))
+
+            ϕ = Dense(4 + 4 + 3 => 5)
+            γ = Dense(5 + 4 => 7)
+            l = VMHConv(ϕ, γ, initialgraph = g)
+
+            rng = Random.default_rng()
+            ps, st = Lux.setup(rng, l)
+
+            ps, st = Lux.setup(rng, l)
+            @test st == (ϕ = NamedTuple(), γ = NamedTuple(), graph = g)
+            y, _ = l(u, ps, st)
+            @test size(y) == (7, g.num_nodes)
+        end
     end
 end
 
