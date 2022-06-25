@@ -35,20 +35,21 @@ st = updategraph(st, new_g)
 y, st = l(x, ps, st)
 ```
 
-  - You can omit the key argument `initalgraph` at initialization, and then call `updategraph` on `st`:
+  - You can omit the key argument `initalgraph` at initialization, and then call `updategraph` on `st` to put the graph in it. All gnn layer can work smoothly with other layers. 
 
 ```@example demo
 g = rand_graph(5, 4, bidirected = false)
 x = randn(3, g.num_nodes)
 
-model = Chain(ExplicitGCNConv(3 => 5),
+model = Chain(Dense(3 => 5),
+              ExplicitGCNConv(5 => 5),
               ExplicitGCNConv(5 => 3))  # you don't need to use `g` for initalization
 # setup layer
 rng = Random.default_rng()
 Random.seed!(rng, 0)
 
-ps, st = Lux.setup(rng, model) # st.graph is empty
-st = updategraph(st, g) # put the graph in there
+ps, st = Lux.setup(rng, model) # the default graph is empty
+st = updategraph(st, g) # put the graph in st
 
 # forward pass
 y, st = model(x, ps, st)
