@@ -11,10 +11,10 @@ This is an abstract type of GNN layers that contains other layers.
 """
 abstract type AbstractGNNContainerLayer{layers} <: AbstractExplicitContainerLayer{layers} end
 
-const emptygraph = rand_graph(0, 0)
+const EMPTYGRAPH = rand_graph(0, 0)
 
 """
-    initialgraph() = emptygraph 
+    initialgraph() = EMPTYGRAPH
 THe default graph initializer for a GNN layer. Return an empty graph.
 """
 initialgraph() = emptygraph
