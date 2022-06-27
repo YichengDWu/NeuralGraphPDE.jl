@@ -371,8 +371,7 @@ Convolutional layer from [Message Passing Neural PDE Solvers](https://arxiv.org/
 
 # States
 
-- `graph`: `GNNGraph` where `graph.ndata.x` represents the spatial coordinates of nodes, `graph.ndata.u` represents the initial condition,
-	   and `graph.gdata.θ` represents the graph level features of the underlying PDE. `θ` should be a vector. 
+- `graph`: `GNNGraph` where `graph.ndata.x` represents the spatial coordinates of nodes, `graph.ndata.u` represents the initial condition, and `graph.gdata.θ` represents the graph level features of the underlying PDE. `θ` should be a vector. 
 
 # Examples
 ```julia
