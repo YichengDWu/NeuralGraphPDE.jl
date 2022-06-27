@@ -410,7 +410,7 @@ end
 function (l::MPPDEConv)(x::AbstractArray, ps, st::NamedTuple)
     num_nodes = st.graph.num_nodes
     num_edges = st.graph.num_edges
-    θ = vcat(values(st.graph.gdata)...)
+    θ = Array{eltype(x)}(vcat(values(st.graph.gdata)...))
 
     function message(xi, xj, e)
         di, dj = values(xi[l.local_features]), values(xj[l.local_features])
