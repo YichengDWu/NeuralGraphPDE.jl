@@ -38,7 +38,7 @@ end
 Edge convolutional layer.
 
 ```math
-\mathbf{u}_i' = \square_{j \in N(i)}\, \phi([\mathbf{u}_i, \mathbf{u}_j; \mathbf{x}_j - \mathbf{x}_i])
+\mathbf{h}_i' = \square_{j \in N(i)}\, \phi([\mathbf{h}_i, \mathbf{h}_j; \mathbf{x}_j - \mathbf{x}_i])
 ```
 
 # Arguments
@@ -248,8 +248,8 @@ end
 Convolutional layer from [Learning continuous-time PDEs from sparse data with graph neural networks](https://arxiv.org/abs/2006.08956).
 ```math
 \begin{aligned}
-\mathbf{m}_i &= \square_{j \in N(i)}\, \phi(\mathbf{u}_i, \mathbf{u}_j - \mathbf{u}_i; \mathbf{x}_j - \mathbf{x}_i)\\
-\mathbf{u}_i' &= \gamma(\mathbf{u}_i ,\mathbf{m}_i)
+\mathbf{m}_i &= \square_{j \in N(i)}\, \phi(\mathbf{h}_i, \mathbf{h}_j - \mathbf{h}_i; \mathbf{x}_j - \mathbf{x}_i)\\
+\mathbf{h}_i' &= \gamma(\mathbf{h}_i ,\mathbf{m}_i)
 \end{aligned}
 ```
 
