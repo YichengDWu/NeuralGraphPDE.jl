@@ -340,7 +340,7 @@ end
 @doc raw"""
     MPPDEConv(ϕ, ψ; initialgraph = initialgraph, aggr = sum, local_features = (:u, :x))
 
-Convolutional layer from [MESSAGE PASSING NEURAL PDE SOLVERS](https://arxiv.org/abs/2202.03376).
+Convolutional layer from [Message Passing Neural PDE Solvers](https://arxiv.org/abs/2202.03376).
 ```math
 \begin{aligned}
 	\mathbf{m}_i&=\Box _{j\in N(i)}\,\phi (\mathbf{h}_i,\mathbf{h}_j;\mathbf{u}_i-\mathbf{u}_j;\mathbf{x}_i-\mathbf{x}_j;\theta )\\
