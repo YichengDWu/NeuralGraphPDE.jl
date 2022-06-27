@@ -11,9 +11,10 @@ using Test
     s = [1, 1, 2, 3]
     t = [2, 3, 1, 1]
     g = GNNGraph(s, t)
+    T = Float32
     @testset "conv" begin
         @testset "gcn" begin
-            x = randn(3, g.num_nodes)
+            x = randn(T, 3, g.num_nodes)
             l = ExplicitGCNConv(3 => 5, initialgraph = g)
 
             ps, st = Lux.setup(rng, l)
@@ -24,8 +25,8 @@ using Test
         end
 
         @testset "edge" begin
-            u = randn(4, g.num_nodes)
-            g = GNNGraph(g, ndata = (; x = rand(3, g.num_nodes)))
+            u = randn(T, 4, g.num_nodes)
+            g = GNNGraph(g, ndata = (; x = rand(T, 3, g.num_nodes)))
             nn = Dense(4 + 4 + 3 => 5)
             l = ExplicitEdgeConv(nn, initialgraph = g)
 
@@ -36,8 +37,8 @@ using Test
         end
 
         @testset "VMH" begin
-            u = randn(4, g.num_nodes)
-            g = GNNGraph(g, ndata = (; x = rand(3, g.num_nodes)))
+            u = randn(T, 4, g.num_nodes)
+            g = GNNGraph(g, ndata = (; x = rand(T, 3, g.num_nodes)))
 
             ϕ = Dense(4 + 4 + 3 => 5)
             γ = Dense(5 + 4 => 7)
@@ -49,6 +50,23 @@ using Test
             ps, st = Lux.setup(rng, l)
             @test st == (ϕ = NamedTuple(), γ = NamedTuple(), graph = g)
             y, _ = l(u, ps, st)
+            @test size(y) == (7, g.num_nodes)
+        end
+        
+        @testset "MPPDE" begin
+            gh = GNNGraph(g, ndata = (; u = rand(2, g.num_nodes), x = rand(3, g.num_nodes)), gdata = (; θ = rand(4)))
+            h = randn(T, 5, g.num_nodes)
+            ϕ = Dense(5 + 5 + 2 + 3 + 4 => 5)
+            ψ = Dense(5 + 5 + 4 => 7)
+            l = MPPDEConv(ϕ, ψ, initialgraph = gh)
+
+            rng = Random.default_rng()
+            ps, st = Lux.setup(rng, l)
+            @test st.graph == gh
+
+            y, st = l(h, ps, st)
+            @test st.graph == gh
+
             @test size(y) == (7, g.num_nodes)
         end
     end
