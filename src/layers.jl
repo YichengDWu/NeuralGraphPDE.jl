@@ -410,12 +410,12 @@ end
 function (l::MPPDEConv)(x::AbstractArray, ps, st::NamedTuple)
     num_nodes = st.graph.num_nodes
     num_edges = st.graph.num_edges
-    θ = vcat(eltype(x)[], values(st.graph.gdata)...)
+    θ = reduce(vcat, values(st.graph.gdata), init = eltype(x)[])
 
     function message(xi, xj, e)
-        di, dj = values(xi[l.local_features]), values(xj[l.local_features])
+        di, dj = reduce(vcat, values(xi[l.local_features])), reduce(vcat, values(xj[l.local_features]))
         hi, hj = xi.h, xj.h
-        m, st_ϕ = l.ϕ(vcat(hi, hj, (di .- dj)..., repeat(θ, 1, num_edges)), ps.ϕ, st.ϕ)
+        m, st_ϕ = l.ϕ(vcat(hi, hj, di .- dj, repeat(θ, 1, num_edges)), ps.ϕ, st.ϕ)
         st = merge(st, (; ϕ = st_ϕ))
         return m
     end
