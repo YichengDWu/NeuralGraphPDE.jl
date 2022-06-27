@@ -52,9 +52,10 @@ using Test
             y, _ = l(u, ps, st)
             @test size(y) == (7, g.num_nodes)
         end
-        
+
         @testset "MPPDE" begin
-            gh = GNNGraph(g, ndata = (; u = rand(2, g.num_nodes), x = rand(3, g.num_nodes)), gdata = (; θ = rand(4)))
+            gh = GNNGraph(g, ndata = (; u = rand(2, g.num_nodes), x = rand(3, g.num_nodes)),
+                          gdata = (; θ = rand(4)))
             h = randn(T, 5, g.num_nodes)
             ϕ = Dense(5 + 5 + 2 + 3 + 4 => 5)
             ψ = Dense(5 + 5 + 4 => 7)
