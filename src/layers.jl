@@ -49,7 +49,7 @@ Edge convolutional layer.
 
 # Inputs
 
-- `u`: Trainable node embeddings, `NamedTuple` or `Array`.
+- `h`: Trainable node embeddings, `NamedTuple` or `Array`.
 
 # Returns
 
@@ -105,7 +105,7 @@ function (l::ExplicitEdgeConv)(x::NamedTuple, ps, st::NamedTuple)
     function message(xi, xj, e)
         posi, posj = xi.x, xj.x
         hi, hj = drop(xi, :x), drop(xj, :x)
-        m, st_ϕ = l.ϕ(cat(values(hi)..., values(hj)..., posj .- posi, dims = 1), ps, st.ϕ)
+        m, st_ϕ = l.ϕ(vcat(values(hi)..., values(hj)..., posj .- posi), ps, st.ϕ)
         st = merge(st, (ϕ = st_ϕ,))
         return m
     end
@@ -255,14 +255,14 @@ Convolutional layer from [Learning continuous-time PDEs from sparse data with gr
 
 # Arguments
 
-- `ϕ`: A neural network. 
-- `γ`: A neural network.
+- `ϕ`: The neural network for the message function. 
+- `γ`: The neural network for the update function.
 - `initialgraph`: `GNNGraph` or a function that returns a `GNNGraph`
 - `aggr`: Aggregation operator for the incoming messages (e.g. `+`, `*`, `max`, `min`, and `mean`).
 
 # Inputs
 
-- `u`: Trainable node embeddings, `NamedTuple` or `Array`.
+- `h`: Trainable node embeddings, `NamedTuple` or `Array`.
 
 # Returns
 
@@ -319,7 +319,7 @@ function (l::VMHConv)(x::NamedTuple, ps, st::NamedTuple)
     function message(xi, xj, e)
         posi, posj = xi.x, xj.x
         hi, hj = values(drop(xi, :x)), values(drop(xj, :x))
-        m, st_ϕ = l.ϕ(cat(hi..., (hj .- hj)..., posi .- posj, dims = 1), ps.ϕ, st.ϕ)
+        m, st_ϕ = l.ϕ(vcat(hi..., (hj .- hi)..., posj .- posi), ps.ϕ, st.ϕ)
         st = merge(st, (; ϕ = st_ϕ))
         return m
     end
@@ -331,8 +331,104 @@ function (l::VMHConv)(x::NamedTuple, ps, st::NamedTuple)
 
     m = propagate(message, g, l.aggr, xi = xs, xj = xs)
 
-    y, st_γ = l.γ(cat(values(x)..., m, dims = 1), ps.γ, st.γ)
+    y, st_γ = l.γ(vcat(values(x)..., m), ps.γ, st.γ)
     st = merge(st, (; γ = st_γ))
+
+    return y, st
+end
+
+@doc raw"""
+    MPPDEConv(ϕ, ψ; initialgraph = initialgraph, aggr = sum, local_features = (:u, :x))
+
+Convolutional layer from [MESSAGE PASSING NEURAL PDE SOLVERS](https://arxiv.org/abs/2202.03376).
+```math
+\begin{aligned}
+	\mathbf{m}_i&=\Box _{j\in N(i)}\,\phi (\mathbf{h}_i,\mathbf{h}_j;\mathbf{u}_i-\mathbf{u}_j;\mathbf{x}_i-\mathbf{x}_j;\theta )\\
+	\mathbf{h}_i'&=\psi (\mathbf{h}_i,\mathbf{m}_i,\theta )\\
+\end{aligned}
+```
+
+# Arguments
+
+- `ϕ`: The neural network for the message function. 
+- `ψ`: The neural network for the update function.
+- `initialgraph`: `GNNGraph` or a function that returns a `GNNGraph`
+- `aggr`: Aggregation operator for the incoming messages (e.g. `+`, `*`, `max`, `min`, and `mean`).
+- `local_features`: The features that will be differentiated in the message function. 
+
+# Inputs
+
+- `h`: Trainable node embeddings, `Array`.
+
+# Returns
+
+- `NamedTuple` or `Array` that has the same struct with `x` with different a size of channels.
+
+# Parameters
+
+- Parameters of `ϕ`.
+- Parameters of `ψ`.
+
+# States
+
+- `graph`: `GNNGraph` where `graph.ndata.x` represents the spatial coordinates of nodes, and `graph.gdata.θ` represents the graph level features.
+           `θ` should be a vector. 
+
+# Examples
+```julia
+g = rand_graph(10, 6)
+
+g = GNNGraph(g, ndata = (; u = rand(2, 10), x = rand(3, 10)), gdata = (; θ = rand(4)))
+h = randn(5, 10)
+ϕ = Dense(5 + 5 + 2 + 3 + 4 => 5)
+ψ = Dense(5 + 5 + 4 => 7)
+l = MPPDEConv(ϕ, ψ, initialgraph = g)
+
+rng = Random.default_rng()
+ps, st = Lux.setup(rng, l)
+
+y, st = l(h, ps, st)
+```
+
+"""
+struct MPPDEConv{F, L, M1, M2, A} <: AbstractGNNContainerLayer{(:ϕ, :ψ)}
+    initialgraph::F
+    local_features::L
+    ϕ::M1
+    ψ::M2
+    aggr::A
+end
+
+function MPPDEConv(ϕ::AbstractExplicitLayer, ψ::AbstractExplicitLayer;
+                   aggr = +,
+                   initialgraph = initialgraph,
+                   local_features = (:u, :x))
+    initialgraph = wrapgraph(initialgraph)
+    MPPDEConv{typeof(initialgraph), typeof(local_features), typeof(ϕ), typeof(ψ),
+              typeof(aggr)}(initialgraph, local_features, ϕ, ψ, aggr)
+end
+
+function (l::MPPDEConv)(x::AbstractArray, ps, st::NamedTuple)
+    num_nodes = st.graph.num_nodes
+    num_edges = st.graph.num_edges
+    θ = vcat(values(st.graph.gdata)...)
+
+    function message(xi, xj, e)
+        di, dj = values(xi[l.local_features]), values(xj[l.local_features])
+        hi, hj = xi.h, xj.h
+        m, st_ϕ = l.ϕ(vcat(hi, hj, (di .- dj)..., repeat(θ, 1, num_edges)), ps.ϕ, st.ϕ)
+        st = merge(st, (; ϕ = st_ϕ))
+        return m
+    end
+
+    g = st.graph
+    s = g.ndata
+
+    xs = merge((; h = x), s)
+    m = propagate(message, g, l.aggr, xi = xs, xj = xs)
+
+    y, st_ψ = l.ψ(vcat(x, m, repeat(θ, 1, num_nodes)), ps.ψ, st.ψ)
+    st = merge(st, (; ψ = st_ψ))
 
     return y, st
 end
