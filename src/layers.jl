@@ -340,7 +340,7 @@ end
 @doc raw"""
     MPPDEConv(ϕ, ψ; initialgraph = initialgraph, aggr = sum, local_features = (:u, :x))
 
-Convolutional layer from [Message Passing Neural PDE Solvers](https://arxiv.org/abs/2202.03376).
+Convolutional layer from [Message Passing Neural PDE Solvers](https://arxiv.org/abs/2202.03376), without the temporal bulking trick.
 ```math
 \begin{aligned}
 	\mathbf{m}_i&=\Box _{j\in N(i)}\,\phi (\mathbf{h}_i,\mathbf{h}_j;\mathbf{u}_i-\mathbf{u}_j;\mathbf{x}_i-\mathbf{x}_j;\theta )\\
@@ -371,8 +371,8 @@ Convolutional layer from [Message Passing Neural PDE Solvers](https://arxiv.org/
 
 # States
 
-- `graph`: `GNNGraph` where `graph.ndata.x` represents the spatial coordinates of nodes, and `graph.gdata.θ` represents the graph level features.
-           `θ` should be a vector. 
+- `graph`: `GNNGraph` where `graph.ndata.x` represents the spatial coordinates of nodes, `graph.ndata.u` represents the initial condition,
+	   and `graph.gdata.θ` represents the graph level features of the underlying PDE. `θ` should be a vector. 
 
 # Examples
 ```julia
