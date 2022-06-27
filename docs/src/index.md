@@ -35,7 +35,7 @@ st = updategraph(st, new_g)
 y, st = l(x, ps, st)
 ```
 
-  - You can omit the key argument `initalgraph` at initialization, and then call `updategraph` on `st` to put the graph in it. All gnn layer can work smoothly with other layers.
+  - You can omit the keyword argument `initalgraph` at initialization, and then call `updategraph` on `st` to put the graph in it. All gnn layer can work smoothly with other layers.
 
 ```@example demo
 g = rand_graph(5, 4, bidirected = false)
@@ -55,6 +55,6 @@ st = updategraph(st, g) # put the graph in st
 y, st = model(x, ps, st)
 ```
 
-  - An unified interface for graph level tasks. As pointed out [here](https://discourse.julialang.org/t/using-a-variable-graph-structure-with-neuralode-and-gcnconv/78881), GNNs are difficult to work well with other neural networks when the input graph is changing. This will not be an issue here. You have an unified interface `y, st = model(x, ps, st)`. In `GraphNeuralNetwork.jl`, you can use `Chain(GNNChain(...), Dense(...))` for graph levels tasks but you will not be able to feed a graph to `Chain(Dense(...), GNNChain(...))`.
+  - An unified interface for graph level tasks. As pointed out [here](https://discourse.julialang.org/t/using-a-variable-graph-structure-with-neuralode-and-gcnconv/78881), GNNs are difficult to work well with other neural networks when the input graph is changing. This will not be an issue here. You have an unified interface `y, st = model(x, ps, st)`.
 
-  - Having node embeddings and other nontrainable features such as spaital coordinates? Thanks to [Lux](http://lux.csail.mit.edu/dev/manual/migrate_from_flux/#implementing-custom-layers), trainable parameters and nonntrainable parameters are seperately stored in `x` and `st`. We will not have to unpack and merge them over and over again.
+  - Trainable node embeddings and nontrainable features are seperately stored in `x` and `st.graph`.
