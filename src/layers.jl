@@ -338,7 +338,7 @@ function (l::VMHConv)(x::NamedTuple, ps, st::NamedTuple)
 end
 
 @doc raw"""
-    MPPDEConv(ϕ, ψ; initialgraph = initialgraph, aggr = sum, local_features = (:u, :x))
+    MPPDEConv(ϕ, ψ; initialgraph = initialgraph, aggr = mean, local_features = (:u, :x))
 Convolutional layer from [Message Passing Neural PDE Solvers](https://arxiv.org/abs/2202.03376), without the temporal bulking trick. 
 ```math
 \begin{aligned}
@@ -384,7 +384,7 @@ struct MPPDEConv{F, L, M1, M2, A} <: AbstractGNNContainerLayer{(:ϕ, :ψ)}
 end
 
 function MPPDEConv(ϕ::AbstractExplicitLayer, ψ::AbstractExplicitLayer;
-                   aggr = +,
+                   aggr = mean,
                    initialgraph = initialgraph,
                    local_features = (:u, :x))
     initialgraph = wrapgraph(initialgraph)
