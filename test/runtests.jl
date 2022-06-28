@@ -4,7 +4,7 @@ using Random
 using Lux
 using Lux: parameterlength
 using Test
-using Flux: batch, unbatch
+import Flux: batch, unbatch
 
 @testset "layers" begin
     rng = Random.default_rng()
