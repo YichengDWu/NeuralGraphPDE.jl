@@ -81,7 +81,7 @@ using Flux: batch, unbatch
                                        x = rand(3, g.num_nodes)),
                               gdata = (; θ = rand(4)))
                 gh = batch([gh, copy(gh)])
-                
+
                 h = randn(T, 5, gh.num_nodes)
                 ϕ = Dense(5 + 5 + 2 + 3 + 4 => 5)
                 ψ = Dense(5 + 5 + 4 => 7)

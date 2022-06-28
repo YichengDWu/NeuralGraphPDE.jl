@@ -419,7 +419,8 @@ function (l::MPPDEConv)(x::AbstractArray, ps, st::NamedTuple)
         di, dj = reduce(vcat, values(xi[l.local_features])),
                  reduce(vcat, values(xj[l.local_features]))
         hi, hj = xi.h, xj.h
-        m, st_ϕ = l.ϕ(vcat(hi, hj, di .- dj, repeat(θ, inner = (1, num_edges ÷ num_graphs))), ps.ϕ, st.ϕ)
+        m, st_ϕ = l.ϕ(vcat(hi, hj, di .- dj,
+                           repeat(θ, inner = (1, num_edges ÷ num_graphs))), ps.ϕ, st.ϕ)
         st = merge(st, (; ϕ = st_ϕ))
         return m
     end
