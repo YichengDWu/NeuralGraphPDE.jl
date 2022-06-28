@@ -14,7 +14,7 @@ include("utils.jl")
 include("layers.jl")
 
 export AbstractGNNLayer, AbstractGNNContainerLayer
-export ExplicitEdgeConv, ExplicitGCNConv, VMHConv, MPPDEConv
+export ExplicitEdgeConv, ExplicitGCNConv, VMHConv, MPPDEConv, GNOConv
 export updategraph
 
 end
