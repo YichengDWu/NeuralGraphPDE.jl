@@ -4,7 +4,7 @@ using Random
 using Lux
 using Lux: parameterlength
 using Test
-using Flux: batch, unbatch
+import Flux: batch, unbatch
 
 @testset "layers" begin
     rng = Random.default_rng()
@@ -111,6 +111,29 @@ using Flux: batch, unbatch
 
                 @test size(y) == (7, gh.num_nodes)
             end
+        end
+
+        @testset "GNOConv" begin
+            g = rand_graph(10, 6)
+
+            g = GNNGraph(g, ndata = (; a = rand(2, g.num_nodes), x = rand(3, g.num_nodes)))
+            in_chs, out_chs = 5, 7
+            h = randn(in_chs, g.num_nodes)
+            ϕ = Dense(2 + 2 + 3 + 3 => in_chs * out_chs)
+            l = GNOConv(5 => 7, ϕ, initialgraph = g)
+
+            rng = Random.default_rng()
+            ps, st = Lux.setup(rng, l)
+
+            y, st = l(h, ps, st)
+            @test size(y) == (7, g.num_nodes)
+
+            l = GNOConv(5 => 7, ϕ, initialgraph = g, bias = false)
+            rng = Random.default_rng()
+            ps, st = Lux.setup(rng, l)
+
+            y, st = l(h, ps, st)
+            @test size(y) == (7, g.num_nodes)
         end
     end
 end
