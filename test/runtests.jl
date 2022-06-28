@@ -4,6 +4,7 @@ using Random
 using Lux
 using Lux: parameterlength
 using Test
+using Flux: batch, unbatch
 
 @testset "layers" begin
     rng = Random.default_rng()
@@ -54,21 +55,62 @@ using Test
         end
 
         @testset "MPPDE" begin
-            gh = GNNGraph(g, ndata = (; u = rand(2, g.num_nodes), x = rand(3, g.num_nodes)),
-                          gdata = (; θ = rand(4)))
-            h = randn(T, 5, g.num_nodes)
-            ϕ = Dense(5 + 5 + 2 + 3 + 4 => 5)
-            ψ = Dense(5 + 5 + 4 => 7)
-            l = MPPDEConv(ϕ, ψ, initialgraph = gh)
+            @testset "With theta" begin
+                gh = GNNGraph(g,
+                              ndata = (; u = rand(2, g.num_nodes),
+                                       x = rand(3, g.num_nodes)),
+                              gdata = (; θ = rand(4)))
 
-            rng = Random.default_rng()
-            ps, st = Lux.setup(rng, l)
-            @test st.graph == gh
+                h = randn(T, 5, g.num_nodes)
+                ϕ = Dense(5 + 5 + 2 + 3 + 4 => 5)
+                ψ = Dense(5 + 5 + 4 => 7)
+                l = MPPDEConv(ϕ, ψ, initialgraph = gh)
 
-            y, st = l(h, ps, st)
-            @test st.graph == gh
+                ps, st = Lux.setup(rng, l)
+                @test st.graph == gh
 
-            @test size(y) == (7, g.num_nodes)
+                y, st = l(h, ps, st)
+
+                @test st.graph == gh
+                @test size(y) == (7, g.num_nodes)
+            end
+
+            @testset "batched graph" begin
+                gh = GNNGraph(g,
+                              ndata = (; u = rand(2, g.num_nodes),
+                                       x = rand(3, g.num_nodes)),
+                              gdata = (; θ = rand(4)))
+                gh = batch([gh, copy(gh)])
+
+                h = randn(T, 5, gh.num_nodes)
+                ϕ = Dense(5 + 5 + 2 + 3 + 4 => 5)
+                ψ = Dense(5 + 5 + 4 => 7)
+                l = MPPDEConv(ϕ, ψ, initialgraph = gh)
+
+                ps, st = Lux.setup(rng, l)
+                y, st = l(h, ps, st)
+                @test size(y) == (7, gh.num_nodes)
+            end
+
+            @testset "Without theta" begin
+                gh = GNNGraph(g,
+                              ndata = (; u = rand(2, g.num_nodes),
+                                       x = rand(3, g.num_nodes)))
+
+                h = randn(T, 5, gh.num_nodes)
+                ϕ = Dense(5 + 5 + 2 + 3 => 5)
+                ψ = Dense(5 + 5 => 7)
+                l = MPPDEConv(ϕ, ψ, initialgraph = gh)
+
+                rng = Random.default_rng()
+                ps, st = Lux.setup(rng, l)
+                @test st.graph == gh
+
+                y, st = l(h, ps, st)
+                @test st.graph == gh
+
+                @test size(y) == (7, gh.num_nodes)
+            end
         end
     end
 end

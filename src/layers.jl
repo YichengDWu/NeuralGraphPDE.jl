@@ -340,7 +340,7 @@ end
 @doc raw"""
     MPPDEConv(ϕ, ψ; initialgraph = initialgraph, aggr = sum, local_features = (:u, :x))
 
-Convolutional layer from [Message Passing Neural PDE Solvers](https://arxiv.org/abs/2202.03376), without the temporal bulking trick.
+Convolutional layer from [Message Passing Neural PDE Solvers](https://arxiv.org/abs/2202.03376), without the temporal bulking trick. 
 ```math
 \begin{aligned}
 	\mathbf{m}_i&=\Box _{j\in N(i)}\,\phi (\mathbf{h}_i,\mathbf{h}_j;\mathbf{u}_i-\mathbf{u}_j;\mathbf{x}_i-\mathbf{x}_j;\theta )\\
@@ -371,7 +371,8 @@ Convolutional layer from [Message Passing Neural PDE Solvers](https://arxiv.org/
 
 # States
 
-- `graph`: `GNNGraph` where `graph.ndata.x` represents the spatial coordinates of nodes, `graph.ndata.u` represents the initial condition, and `graph.gdata.θ` represents the graph level features of the underlying PDE. `θ` should be a vector. 
+- `graph`: `GNNGraph` where `graph.ndata.x` represents the spatial coordinates of nodes, `graph.ndata.u` represents the initial condition, and `graph.gdata.θ` represents the graph level features of the underlying PDE. `θ` should be a matrix
+of the size `(num_feats, num_graphs)`. If `g` is a batched graph, then all graphs need to have the same structure.
 
 # Examples
 ```julia
@@ -408,25 +409,28 @@ function MPPDEConv(ϕ::AbstractExplicitLayer, ψ::AbstractExplicitLayer;
 end
 
 function (l::MPPDEConv)(x::AbstractArray, ps, st::NamedTuple)
-    num_nodes = st.graph.num_nodes
-    num_edges = st.graph.num_edges
-    θ = vcat(values(st.graph.gdata)...)
+    g = st.graph
+    num_nodes = g.num_nodes
+    num_edges = g.num_edges
+    num_graphs = g.num_graphs
+    θ = reduce(vcat, values(st.graph.gdata), init = similar(x, 0, num_graphs))
 
     function message(xi, xj, e)
-        di, dj = values(xi[l.local_features]), values(xj[l.local_features])
+        di, dj = reduce(vcat, values(xi[l.local_features])),
+                 reduce(vcat, values(xj[l.local_features]))
         hi, hj = xi.h, xj.h
-        m, st_ϕ = l.ϕ(vcat(hi, hj, (di .- dj)..., repeat(θ, 1, num_edges)), ps.ϕ, st.ϕ)
+        m, st_ϕ = l.ϕ(vcat(hi, hj, di .- dj,
+                           repeat(θ, inner = (1, num_edges ÷ num_graphs))), ps.ϕ, st.ϕ)
         st = merge(st, (; ϕ = st_ϕ))
         return m
     end
 
-    g = st.graph
     s = g.ndata
 
     xs = merge((; h = x), s)
     m = propagate(message, g, l.aggr, xi = xs, xj = xs)
 
-    y, st_ψ = l.ψ(vcat(x, m, repeat(θ, 1, num_nodes)), ps.ψ, st.ψ)
+    y, st_ψ = l.ψ(vcat(x, m, repeat(θ, inner = (1, num_nodes ÷ num_graphs))), ps.ψ, st.ψ)
     st = merge(st, (; ψ = st_ψ))
 
     return y, st
