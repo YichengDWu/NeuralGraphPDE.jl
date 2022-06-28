@@ -127,6 +127,13 @@ using Flux: batch, unbatch
 
             y, st = l(h, ps, st)
             @test size(y) == (7, g.num_nodes)
+
+            l = GNOConv(5 => 7, ϕ, initialgraph = g, bias = false)
+            rng = Random.default_rng()
+            ps, st = Lux.setup(rng, l)
+
+            y, st = l(h, ps, st)
+            @test size(y) == (7, g.num_nodes)
         end
     end
 end

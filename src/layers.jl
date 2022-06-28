@@ -517,14 +517,14 @@ function (l::GNOConv{true})(x::AbstractArray, ps, st::NamedTuple)
         si, sj = xi[edge_features], xj[edge_features]
         si, sj = reduce(vcat, values(si)), reduce(vcat, values(sj))
 
-        W, st_ϕ = ϕ(vcat(si, sj), ps.ϕ, st.ϕ)
+        W, st_ϕ = l.ϕ(vcat(si, sj), ps.ϕ, st.ϕ)
         st = merge(st, (; ϕ = st_ϕ))
 
         hj = xj.h
         nin, nedges = size(hj)
         W = reshape(W, :, nin, nedges)
         hj = reshape(hj, (nin, 1, nedges))
-        m = NNlib.batched_mul(W, xj)
+        m = NNlib.batched_mul(W, hj)
         return reshape(m, :, nedges)
     end
 
@@ -544,14 +544,14 @@ function (l::GNOConv{false})(x::AbstractArray, ps, st::NamedTuple)
         si, sj = xi[edge_features], xj[edge_features]
         si, sj = reduce(vcat, values(si)), reduce(vcat, values(sj))
 
-        W, st_ϕ = ϕ(vcat(si, sj), ps.ϕ, st.ϕ)
+        W, st_ϕ = l.ϕ(vcat(si, sj), ps.ϕ, st.ϕ)
         st = merge(st, (; ϕ = st_ϕ))
 
         hj = xj.h
         nin, nedges = size(hj)
         W = reshape(W, :, nin, nedges)
         hj = reshape(hj, (nin, 1, nedges))
-        m = NNlib.batched_mul(W, xj)
+        m = NNlib.batched_mul(W, hj)
         return reshape(m, :, nedges)
     end
 
