@@ -1,6 +1,6 @@
 module NeuralGraphPDE
 
-using Lux, GraphNeuralNetworks, NNlib
+using Lux, GraphNeuralNetworks, NNlib, NNlibCUDA
 using Lux: AbstractExplicitContainerLayer, AbstractExplicitLayer, glorot_normal,
            glorot_uniform,
            ones32, zeros32, AbstractRNG
