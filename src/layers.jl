@@ -65,7 +65,6 @@ Edge convolutional layer.
 
 # Examples
 ```julia
-
 s = [1, 1, 2, 3]
 t = [2, 3, 1, 1]
 g = GNNGraph(s, t)
@@ -279,7 +278,6 @@ Convolutional layer from [Learning continuous-time PDEs from sparse data with gr
 
 # Examples
 ```julia
-
 s = [1, 1, 2, 3]
 t = [2, 3, 1, 1]
 g = GNNGraph(s, t)
