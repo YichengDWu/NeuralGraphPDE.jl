@@ -9,8 +9,8 @@ You can define a custom layer with the following steps:
 Step 1. Define your type of the layer and add `initialgraph` as a field.
 
 ```
-struct MyGNNLayer{F} <: AbstractGNNLayer
-    initialgraph::F
+struct MyGNNLayer <: AbstractGNNLayer
+    initialgraph::Function
     ...
 end
 ```
@@ -34,7 +34,7 @@ Step 3. Define the constructor(s) that has the keyword argument `initialgraph=in
 ```
 function MyGNNLayer(...; initialgraph=initialgraph)
   initalgraph = wrapgraph(initialgraph) # always wrap initialgraph so the input can be a graph or a function
-  MyGNNLayer{typeof(initialgraph), ...}(initialgraph,...)
+  MyGNNLayer{...}(initialgraph,...)
 end
 ```
 

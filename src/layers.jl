@@ -306,7 +306,7 @@ function VMHConv(ϕ::AbstractExplicitLayer, γ::AbstractExplicitLayer;
                  initialgraph = initialgraph, aggr = mean)
     initialgraph = wrapgraph(initialgraph)
     VMHConv{typeof(ϕ), typeof(γ), typeof(aggr)}(initialgraph, ϕ, γ,
-                                                                      aggr)
+                                                aggr)
 end
 
 function (l::VMHConv)(x::AbstractArray, ps, st::NamedTuple)
