@@ -80,16 +80,16 @@ ps, st = Lux.setup(rng, l)
 ```
 
 """
-struct ExplicitEdgeConv{F, M} <:
+struct ExplicitEdgeConv{M} <:
        AbstractGNNContainerLayer{(:ϕ,)}
-    initialgraph::F
+    initialgraph::Function
     ϕ::M
     aggr::Function
 end
 
 function ExplicitEdgeConv(ϕ::AbstractExplicitLayer; initialgraph = initialgraph,
                           aggr = mean)
-    ExplicitEdgeConv(wrapgraph(initialgraph), ϕ, aggr)
+    ExplicitEdgeConv{typeof(ϕ)}(wrapgraph(initialgraph), ϕ, aggr)
 end
 
 function (l::ExplicitEdgeConv)(x::AbstractArray, ps, st::NamedTuple)
@@ -145,13 +145,13 @@ ps, st = Lux.setup(rng, l)
 y = l(x, ps, st)       # size:  5 × num_nodes
 ```
 """
-struct ExplicitGCNConv{bias, F1, F2, F3, F4} <: AbstractGNNLayer
-    initialgraph::F1
+struct ExplicitGCNConv{bias, F1, F2, F3} <: AbstractGNNLayer
+    initialgraph::Function
     in_chs::Int
     out_chs::Int
-    activation::F2
-    init_weight::F3
-    init_bias::F4
+    activation::F1
+    init_weight::F2
+    init_bias::F3
     add_self_loops::Bool
     use_edge_weight::Bool
 end
@@ -182,7 +182,7 @@ function ExplicitGCNConv(in_chs::Int, out_chs::Int, activation = identity;
                          use_edge_weight::Bool = false)
     activation = NNlib.fast_act(activation)
     initialgraph = wrapgraph(initialgraph)
-    return ExplicitGCNConv{bias, typeof(initialgraph), typeof(activation),
+    return ExplicitGCNConv{bias, typeof(activation),
                            typeof(init_weight), typeof(init_bias)
                            }(initialgraph, in_chs, out_chs, activation,
                              init_weight, init_bias,
@@ -295,8 +295,8 @@ y, st = l(u, ps, st)
 ```
                     
 """
-struct VMHConv{F, M1, M2, A} <: AbstractGNNContainerLayer{(:ϕ, :γ)}
-    initialgraph::F
+struct VMHConv{M1, M2, A} <: AbstractGNNContainerLayer{(:ϕ, :γ)}
+    initialgraph::Function
     ϕ::M1
     γ::M2
     aggr::A
@@ -305,8 +305,8 @@ end
 function VMHConv(ϕ::AbstractExplicitLayer, γ::AbstractExplicitLayer;
                  initialgraph = initialgraph, aggr = mean)
     initialgraph = wrapgraph(initialgraph)
-    VMHConv{typeof(initialgraph), typeof(ϕ), typeof(γ), typeof(aggr)}(initialgraph, ϕ, γ,
-                                                                      aggr)
+    VMHConv{typeof(ϕ), typeof(γ), typeof(aggr)}(initialgraph, ϕ, γ,
+                                                aggr)
 end
 
 function (l::VMHConv)(x::AbstractArray, ps, st::NamedTuple)
@@ -373,8 +373,8 @@ ps, st = Lux.setup(rng, l)
 y, st = l(h, ps, st)
 ```
 """
-struct MPPDEConv{F, L, M1, M2, A} <: AbstractGNNContainerLayer{(:ϕ, :ψ)}
-    initialgraph::F
+struct MPPDEConv{L, M1, M2, A} <: AbstractGNNContainerLayer{(:ϕ, :ψ)}
+    initialgraph::Function
     local_features::L
     ϕ::M1
     ψ::M2
@@ -386,7 +386,7 @@ function MPPDEConv(ϕ::AbstractExplicitLayer, ψ::AbstractExplicitLayer;
                    initialgraph = initialgraph,
                    local_features = (:u, :x))
     initialgraph = wrapgraph(initialgraph)
-    MPPDEConv{typeof(initialgraph), typeof(local_features), typeof(ϕ), typeof(ψ),
+    MPPDEConv{typeof(local_features), typeof(ϕ), typeof(ψ),
               typeof(aggr)}(initialgraph, local_features, ϕ, ψ, aggr)
 end
 
