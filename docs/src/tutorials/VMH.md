@@ -6,9 +6,11 @@ We will use graph neural networks to learn the dynamics of the convection-diffus
 ```math
 \frac{\partial u(x, y, t)}{\partial t}=0.25 \nabla^{2} u(x, y, t)-\mathbf{v} \cdot \nabla u(x, y, t).
 ```
+
 Specifically, we will learn the operator from the inital condition to the whole solution on the given temporal and spatial domain.
 
 ## Load the packages
+
 ```julia
 using DataDeps, MLUtils, GraphNeuralNetworks, Fetch
 using NeuralGraphPDE, Lux, Optimisers, Random
@@ -27,14 +29,13 @@ using Statistics: mean
 
 ```julia
 function register_convdiff()
-    register(DataDep(
-        "Convection_Diffusion_Equation",
-        """
-        Convection-Diffusion equation dataset from
-        [Learning continuous-time PDEs from sparse data with graph neural networks](https://github.com/yakovlev31/graphpdes_experiments)
-        """,
-        "https://drive.google.com/file/d/1oyatNeLizoO5co2ZVXIwZmWjJ046E9j6/view?usp=sharing",
-        fetch_method=gdownload))
+    register(DataDep("Convection_Diffusion_Equation",
+                     """
+                     Convection-Diffusion equation dataset from
+                     [Learning continuous-time PDEs from sparse data with graph neural networks](https://github.com/yakovlev31/graphpdes_experiments)
+                     """,
+                     "https://drive.google.com/file/d/1oyatNeLizoO5co2ZVXIwZmWjJ046E9j6/view?usp=sharing",
+                     fetch_method = gdownload))
 end
 
 register_convdiff()
@@ -44,7 +45,8 @@ function get_data()
 
     train_data = (data["gs_train"], data["u_train"])
     test_data = (data["gs_test"], data["u_test"])
-    return train_data, test_data, data["dt_train"], data["dt_test"], data["tspan_train"], data["tspan_test"]
+    return train_data, test_data, data["dt_train"], data["dt_test"], data["tspan_train"],
+           data["tspan_test"]
 end
 
 train_data, test_data, dt_train, dt_test, tspan_train, tspan_test = get_data()
@@ -57,7 +59,7 @@ neighbors if they lie on the same edge of at least one triangle.
 ## Utilities function
 
 ```julia
-function diffeqsol_to_array(x::ODESolution{T,N,<:AbstractVector{<:CuArray}}) where {T,N}
+function diffeqsol_to_array(x::ODESolution{T, N, <:AbstractVector{<:CuArray}}) where {T, N}
     return gpu(x)
 end
 
@@ -69,19 +71,19 @@ diffeqsol_to_array(x::ODESolution) = Array(x)
 We will use only one message passing layer. The layer will have the following structure:
 
 ```julia
-act = tanh
+act = gelu
 nhidden = 60
 nout = 40
 
 ϕ = Chain(Dense(4 => nhidden, act),
-          Dense(nhidden => nhidden,act),
-          Dense(nhidden => nhidden,act),
+          Dense(nhidden => nhidden, act),
+          Dense(nhidden => nhidden, act),
           Dense(nhidden => nout))
 
-γ = Chain(Dense(nout+1 => nhidden, act),
-            Dense(nhidden => nhidden,act),
-            Dense(nhidden => nhidden,act),
-            Dense(nhidden =>  1))
+γ = Chain(Dense(nout + 1 => nhidden, act),
+          Dense(nhidden => nhidden, act),
+          Dense(nhidden => nhidden, act),
+          Dense(nhidden => 1))
 
 gnn = VMHConv(ϕ, γ)
 
@@ -100,14 +102,14 @@ import Optimisers: init, apply!
 
 struct Rprop{T} <: AbstractRule
     eta::T
-    ell::Tuple{T,T}
-    gamma::Tuple{T,T}
+    ell::Tuple{T, T}
+    gamma::Tuple{T, T}
 end
-  
-Rprop(η = 1f-3, ℓ = (5f-1, 1.2f0), Γ = (1f-6, 50f0)) = Rprop{typeof(η)}(η, ℓ, Γ)
-  
+
+Rprop(η = 1.0f-3, ℓ = (5.0f-1, 1.2f0), Γ = (1.0f-6, 50.0f0)) = Rprop{typeof(η)}(η, ℓ, Γ)
+
 init(o::Rprop, x::AbstractArray) = (zero(x), onevalue(o.eta, x))
-  
+
 function apply!(o::Rprop, state, x, dx)
     ℓ, Γ = o.ell, o.gamma
     g, η = state
@@ -125,10 +127,11 @@ function apply!(o::Rprop, state, x, dx)
     return (g, η), dx′
 end
 
-opt = Rprop(1f-6, (5f-1, 1.2f0), (1f-8, 10f0))
+opt = Rprop(1.0f-6, (5.0f-1, 1.2f0), (1.0f-8, 10.0f0))
 ```
 
 ## Loss function
+
 We will use the `mse` loss function.
 
 ```julia
@@ -142,11 +145,11 @@ end
 ## Train the model
 
 The solution data has the shape `(space_points , time_points, num_samples)`. We will first permute the last two dimensions, resulting in the shape `(space_points , num_samples, time_points)`.
-Then we flatten the first two dimensions, `(1, space_points * num_samples, time_points)`, and use the initial condition as the input to the model. 
-The output of the model will be of size `(1, space_points * time_points, num_samples)`. 
+Then we flatten the first two dimensions, `(1, space_points * num_samples, time_points)`, and use the initial condition as the input to the model.
+The output of the model will be of size `(1, space_points * time_points, num_samples)`.
 
 ```julia
-train_loader = DataLoader(train_data, batchsize= 24, shuffle=true)
+train_loader = DataLoader(train_data, batchsize = 24, shuffle = true)
 
 rng = Random.default_rng()
 Random.seed!(rng, 0)
@@ -161,17 +164,20 @@ for i in 1:200
         g = g |> mydevice
         st = updategraph(st, g)
         u = u |> mydevice
-        u0 = reshape(u[:,1,:], 1, :)
-        ut = permutedims(u, (1,3,2))
+        u0 = reshape(u[:, 1, :], 1, :)
+        ut = permutedims(u, (1, 3, 2))
         ut = reshape(ut, 1, g.num_nodes, :)
-        
+
         l, back = pullback(p -> loss(u0, ut, p, st), ps)
-        ((i-1)%10 == 0) && @info "epoch $i | train loss = $l"
+        ((i - 1) % 10 == 0) && @info "epoch $i | train loss = $l"
         gs = back(one(l))[1]
         st_opt, ps = Optimisers.update(st_opt, ps, gs)
     end
 end
 ```
 
-## Evaluate the model
+## Expected output
 
+```
+
+```
