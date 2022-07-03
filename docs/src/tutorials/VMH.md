@@ -15,7 +15,6 @@ Specifically, we will learn the operator from the inital condition to the whole 
 using DataDeps, MLUtils, GraphNeuralNetworks, Fetch
 using NeuralGraphPDE, Lux, Optimisers, Random
 using CUDA, JLD2
-import NeuralGraphPDE: initialgraph
 using SciMLSensitivity, DifferentialEquations
 using Zygote
 using Flux.Losses: mse
@@ -71,6 +70,9 @@ diffeqsol_to_array(x::ODESolution) = Array(x)
 We will use only one message passing layer. The layer will have the following structure:
 
 ```@example ngpde
+initialparameters(rng::AbstractRNG, node::NeuralODE) = initialparameters(rng, node.model) 
+initialstates(rng::AbstractRNG, node::NeuralODE) = initialstates(rng, node.model)
+
 act = gelu
 nhidden = 60
 nout = 40
