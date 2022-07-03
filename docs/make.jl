@@ -26,6 +26,7 @@ makedocs(;
              "Home" => "index.md",
              "Tutorials" => [
                  "Neural Graph Ordinary Differential Equations" => "tutorials/graph_node.md",
+                 "Neural Graph Partial Differential Equations" => "tutorials/VMH.md",
              ],
              "API Reference" => [
                  "Layers" => "api/layers.md",
