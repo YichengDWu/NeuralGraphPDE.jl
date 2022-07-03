@@ -11,7 +11,7 @@ Specifically, we will learn the operator from the inital condition to the whole 
 
 ## Load the packages
 
-```julia
+```@example ngpde
 using DataDeps, MLUtils, GraphNeuralNetworks, Fetch
 using NeuralGraphPDE, Lux, Optimisers, Random
 using CUDA, JLD2
@@ -27,7 +27,7 @@ using Statistics: mean
 
 ## Load data
 
-```julia
+```@example ngpde
 function register_convdiff()
     register(DataDep("Convection_Diffusion_Equation",
                      """
@@ -58,7 +58,7 @@ neighbors if they lie on the same edge of at least one triangle.
 
 ## Utilities function
 
-```julia
+```@example ngpde
 function diffeqsol_to_array(x::ODESolution{T, N, <:AbstractVector{<:CuArray}}) where {T, N}
     return gpu(x)
 end
@@ -70,7 +70,7 @@ diffeqsol_to_array(x::ODESolution) = Array(x)
 
 We will use only one message passing layer. The layer will have the following structure:
 
-```julia
+```@example ngpde
 act = gelu
 nhidden = 60
 nout = 40
@@ -96,7 +96,7 @@ model = Chain(node, diffeqsol_to_array)
 
 Since we only have 24 samples, we will use the `Rprop` optimiser.
 
-```julia
+```@example ngpde
 using Optimisers: @.., @lazy, AbstractRule, onevalue
 import Optimisers: init, apply!
 
@@ -134,7 +134,7 @@ opt = Rprop(1.0f-6, (5.0f-1, 1.2f0), (1.0f-8, 10.0f0))
 
 We will use the `mse` loss function.
 
-```julia
+```@example ngpde
 function loss(x, y, ps, st)
     ŷ, st = model(x, ps, st)
     l = mse(ŷ, y)
@@ -148,7 +148,7 @@ The solution data has the shape `(space_points , time_points, num_samples)`. We 
 Then we flatten the first two dimensions, `(1, space_points * num_samples, time_points)`, and use the initial condition as the input to the model.
 The output of the model will be of size `(1, space_points * time_points, num_samples)`.
 
-```julia
+```@example ngpde
 train_loader = DataLoader(train_data, batchsize = 24, shuffle = true)
 
 rng = Random.default_rng()
