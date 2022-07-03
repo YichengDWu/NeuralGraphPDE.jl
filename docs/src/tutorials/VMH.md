@@ -156,28 +156,30 @@ train_loader = DataLoader(train_data, batchsize = 24, shuffle = true)
 rng = Random.default_rng()
 Random.seed!(rng, 0)
 
-ps, st = Lux.setup(rng, model)
-ps = Lux.ComponentArray(ps) |> mydevice
-st = st |> mydevice
-st_opt = Optimisers.setup(opt, ps)
+function train()
+    ps, st = Lux.setup(rng, model)
+    ps = Lux.ComponentArray(ps) |> mydevice
+    st = st |> mydevice
+    st_opt = Optimisers.setup(opt, ps)
 
-for i in 1:200
-    st = st #hide
-    ps = ps #hide 
-    for (g, u) in train_loader
-        g = g |> mydevice
-        st = updategraph(st, g)
-        u = u |> mydevice
-        u0 = reshape(u[:, 1, :], 1, :)
-        ut = permutedims(u, (1, 3, 2))
-        ut = reshape(ut, 1, g.num_nodes, :)
+    for i in 1:200
+        for (g, u) in train_loader
+            g = g |> mydevice
+            st = updategraph(st, g)
+            u = u |> mydevice
+            u0 = reshape(u[:, 1, :], 1, :)
+            ut = permutedims(u, (1, 3, 2))
+            ut = reshape(ut, 1, g.num_nodes, :)
 
-        l, back = pullback(p -> loss(u0, ut, p, st), ps)
-        ((i - 1) % 10 == 0) && @info "epoch $i | train loss = $l"
-        gs = back(one(l))[1]
-        st_opt, ps = Optimisers.update(st_opt, ps, gs)
+            l, back = pullback(p -> loss(u0, ut, p, st), ps)
+            ((i - 1) % 10 == 0) && @info "epoch $i | train loss = $l"
+            gs = back(one(l))[1]
+            st_opt, ps = Optimisers.update(st_opt, ps, gs)
+        end
     end
 end
+
+train()
 ```
 
 ## Expected output
