@@ -151,6 +151,7 @@ Then we flatten the first two dimensions, `(1, space_points * num_samples, time_
 The output of the model will be of size `(1, space_points * time_points, num_samples)`.
 
 ```@example ngpde
+mydevice = CUDA.functional() ? gpu : cpu
 train_loader = DataLoader(train_data, batchsize = 24, shuffle = true)
 
 rng = Random.default_rng()
