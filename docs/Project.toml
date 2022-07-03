@@ -1,6 +1,7 @@
 [deps]
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 ComponentArrays = "b0b7db55-cfe3-40fc-9ded-d10e2dbeff66"
+DataDeps = "124859b0-ceae-595e-8997-d05f6a7a8dfe"
 DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 GraphMakie = "1ecd5474-83a3-4783-bb4f-06765db800d2"
