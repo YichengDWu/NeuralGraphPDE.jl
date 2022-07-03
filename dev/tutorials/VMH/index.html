@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Neural Graph Partial Differential Equations · NeuralGraphPDE.jl</title><script data-outdated-warner src="../../assets/warner.js"></script><link rel="canonical" href="https://MilkshakeForReal.github.io/NeuralGraphPDE.jl/tutorials/VMH/"/><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.044/juliamono.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">NeuralGraphPDE.jl</a></span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../graph_node/">Neural Graph Ordinary Differential Equations</a></li><li class="is-active"><a class="tocitem" href>Neural Graph Partial Differential Equations</a><ul class="internal"><li><a class="tocitem" href="#Load-the-packages"><span>Load the packages</span></a></li><li><a class="tocitem" href="#Load-data"><span>Load data</span></a></li><li><a class="tocitem" href="#Utilities-function"><span>Utilities function</span></a></li><li><a class="tocitem" href="#Model"><span>Model</span></a></li><li><a class="tocitem" href="#Optimiser"><span>Optimiser</span></a></li><li><a class="tocitem" href="#Loss-function"><span>Loss function</span></a></li><li><a class="tocitem" href="#Train-the-model"><span>Train the model</span></a></li><li><a class="tocitem" href="#Expected-output"><span>Expected output</span></a></li></ul></li></ul></li><li><span class="tocitem">API Reference</span><ul><li><a class="tocitem" href="../../api/layers/">Layers</a></li><li><a class="tocitem" href="../../api/utilities/">Utilities</a></li></ul></li><li><a class="tocitem" href="../../devdoc/">Developer Documentation</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Neural Graph Partial Differential Equations</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Neural Graph Partial Differential Equations</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/MilkshakeForReal/NeuralGraphPDE.jl/blob/main/docs/src/tutorials/VMH.md#" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Neural-Graph-Partial-Differential-Equations"><a class="docs-heading-anchor" href="#Neural-Graph-Partial-Differential-Equations">Neural Graph Partial Differential Equations</a><a id="Neural-Graph-Partial-Differential-Equations-1"></a><a class="docs-heading-anchor-permalink" href="#Neural-Graph-Partial-Differential-Equations" title="Permalink"></a></h1><p>This tutorial is adapted from the paper <a href="https://github.com/yakovlev31/graphpdes_experiments/blob/master/convdiff/train.py">LEARNING CONTINUOUS-TIME PDES FROM SPARSE DATA WITH GRAPH NEURAL NETWORKS</a>. We will use graph neural networks to learn the dynamics of the convection-diffusion equation defined as</p><p class="math-container">\[\frac{\partial u(x, y, t)}{\partial t}=0.25 \nabla^{2} u(x, y, t)-\mathbf{v} \cdot \nabla u(x, y, t).\]</p><p>Specifically, we will learn the operator from the inital condition to the whole solution on the given temporal and spatial domain.</p><h2 id="Load-the-packages"><a class="docs-heading-anchor" href="#Load-the-packages">Load the packages</a><a id="Load-the-packages-1"></a><a class="docs-heading-anchor-permalink" href="#Load-the-packages" title="Permalink"></a></h2><pre><code class="language-julia hljs">using DataDeps, MLUtils, GraphNeuralNetworks, Fetch
+using NeuralGraphPDE, Lux, Optimisers, Random
+using CUDA, JLD2
+import NeuralGraphPDE: initialgraph
+using SciMLSensitivity, DifferentialEquations
+using Zygote
+using Flux.Losses: mse
+import Lux: initialparameters, initialstates
+using NNlib
+using DiffEqFlux: NeuralODE
+using Statistics: mean</code></pre><h2 id="Load-data"><a class="docs-heading-anchor" href="#Load-data">Load data</a><a id="Load-data-1"></a><a class="docs-heading-anchor-permalink" href="#Load-data" title="Permalink"></a></h2><pre><code class="language-julia hljs">function register_convdiff()
+    register(DataDep(&quot;Convection_Diffusion_Equation&quot;,
+                     &quot;&quot;&quot;
+                     Convection-Diffusion equation dataset from
+                     [Learning continuous-time PDEs from sparse data with graph neural networks](https://github.com/yakovlev31/graphpdes_experiments)
+                     &quot;&quot;&quot;,
+                     &quot;https://drive.google.com/file/d/1oyatNeLizoO5co2ZVXIwZmWjJ046E9j6/view?usp=sharing&quot;,
+                     fetch_method = gdownload))
+end
+
+register_convdiff()
+
+function get_data()
+    data = load(joinpath(datadep&quot;Convection_Diffusion_Equation&quot;, &quot;convdiff_n3000.jld2&quot;))
+
+    train_data = (data[&quot;gs_train&quot;], data[&quot;u_train&quot;])
+    test_data = (data[&quot;gs_test&quot;], data[&quot;u_test&quot;])
+    return train_data, test_data, data[&quot;dt_train&quot;], data[&quot;dt_test&quot;], data[&quot;tspan_train&quot;],
+           data[&quot;tspan_test&quot;]
+end
+
+train_data, test_data, dt_train, dt_test, tspan_train, tspan_test = get_data()</code></pre><p>The training data contrains 24 simulations on the time interval <span>$[0,0.2]$</span>. Simulations are obeserved on different 2D grids with 3000 points. Neighbors for each node were selected by applying Delaunay triangulation to the measurement positions. Two nodes were considered to be neighbors if they lie on the same edge of at least one triangle.</p><h2 id="Utilities-function"><a class="docs-heading-anchor" href="#Utilities-function">Utilities function</a><a id="Utilities-function-1"></a><a class="docs-heading-anchor-permalink" href="#Utilities-function" title="Permalink"></a></h2><pre><code class="language-julia hljs">function diffeqsol_to_array(x::ODESolution{T, N, &lt;:AbstractVector{&lt;:CuArray}}) where {T, N}
+    return gpu(x)
+end
+
+diffeqsol_to_array(x::ODESolution) = Array(x)</code></pre><h2 id="Model"><a class="docs-heading-anchor" href="#Model">Model</a><a id="Model-1"></a><a class="docs-heading-anchor-permalink" href="#Model" title="Permalink"></a></h2><p>We will use only one message passing layer. The layer will have the following structure:</p><pre><code class="language-julia hljs">act = gelu
+nhidden = 60
+nout = 40
+
+ϕ = Chain(Dense(4 =&gt; nhidden, act),
+          Dense(nhidden =&gt; nhidden, act),
+          Dense(nhidden =&gt; nhidden, act),
+          Dense(nhidden =&gt; nout))
+
+γ = Chain(Dense(nout + 1 =&gt; nhidden, act),
+          Dense(nhidden =&gt; nhidden, act),
+          Dense(nhidden =&gt; nhidden, act),
+          Dense(nhidden =&gt; 1))
+
+gnn = VMHConv(ϕ, γ)
+
+node = NeuralODE(gnn, tspan_train, Tsit5(), saveat = dt_train, reltol = 1e-9, abstol = 1e-3)
+
+model = Chain(node, diffeqsol_to_array)</code></pre><h2 id="Optimiser"><a class="docs-heading-anchor" href="#Optimiser">Optimiser</a><a id="Optimiser-1"></a><a class="docs-heading-anchor-permalink" href="#Optimiser" title="Permalink"></a></h2><p>Since we only have 24 samples, we will use the <code>Rprop</code> optimiser.</p><pre><code class="language-julia hljs">using Optimisers: @.., @lazy, AbstractRule, onevalue
+import Optimisers: init, apply!
+
+struct Rprop{T} &lt;: AbstractRule
+    eta::T
+    ell::Tuple{T, T}
+    gamma::Tuple{T, T}
+end
+
+Rprop(η = 1.0f-3, ℓ = (5.0f-1, 1.2f0), Γ = (1.0f-6, 50.0f0)) = Rprop{typeof(η)}(η, ℓ, Γ)
+
+init(o::Rprop, x::AbstractArray) = (zero(x), onevalue(o.eta, x))
+
+function apply!(o::Rprop, state, x, dx)
+    ℓ, Γ = o.ell, o.gamma
+    g, η = state
+
+    η = broadcast(g, η, dx) do g, η, dx
+        g * dx &gt; 0 ? min(η * ℓ[2], Γ[2]) : g * dx &lt; 0 ? max(η * ℓ[1], Γ[1]) : η
+    end
+
+    g = broadcast(g, dx) do g, dx
+        g * dx &lt; 0 ? zero(dx) : dx
+    end
+
+    dx′ = @lazy η * sign(g)
+
+    return (g, η), dx′
+end
+
+opt = Rprop(1.0f-6, (5.0f-1, 1.2f0), (1.0f-8, 10.0f0))</code></pre><h2 id="Loss-function"><a class="docs-heading-anchor" href="#Loss-function">Loss function</a><a id="Loss-function-1"></a><a class="docs-heading-anchor-permalink" href="#Loss-function" title="Permalink"></a></h2><p>We will use the <code>mse</code> loss function.</p><pre><code class="language-julia hljs">function loss(x, y, ps, st)
+    ŷ, st = model(x, ps, st)
+    l = mse(ŷ, y)
+    return l
+end</code></pre><h2 id="Train-the-model"><a class="docs-heading-anchor" href="#Train-the-model">Train the model</a><a id="Train-the-model-1"></a><a class="docs-heading-anchor-permalink" href="#Train-the-model" title="Permalink"></a></h2><p>The solution data has the shape <code>(space_points , time_points, num_samples)</code>. We will first permute the last two dimensions, resulting in the shape <code>(space_points , num_samples, time_points)</code>. Then we flatten the first two dimensions, <code>(1, space_points * num_samples, time_points)</code>, and use the initial condition as the input to the model. The output of the model will be of size <code>(1, space_points * time_points, num_samples)</code>.</p><pre><code class="language-julia hljs">train_loader = DataLoader(train_data, batchsize = 24, shuffle = true)
+
+rng = Random.default_rng()
+Random.seed!(rng, 0)
+
+ps, st = Lux.setup(rng, model)
+ps = Lux.ComponentArray(ps) |&gt; mydevice
+st = st |&gt; mydevice
+st_opt = Optimisers.setup(opt, ps)
+
+for i in 1:200
+    for (g, u) in train_loader
+        g = g |&gt; mydevice
+        st = updategraph(st, g)
+        u = u |&gt; mydevice
+        u0 = reshape(u[:, 1, :], 1, :)
+        ut = permutedims(u, (1, 3, 2))
+        ut = reshape(ut, 1, g.num_nodes, :)
+
+        l, back = pullback(p -&gt; loss(u0, ut, p, st), ps)
+        ((i - 1) % 10 == 0) &amp;&amp; @info &quot;epoch $i | train loss = $l&quot;
+        gs = back(one(l))[1]
+        st_opt, ps = Optimisers.update(st_opt, ps, gs)
+    end
+end</code></pre><h2 id="Expected-output"><a class="docs-heading-anchor" href="#Expected-output">Expected output</a><a id="Expected-output-1"></a><a class="docs-heading-anchor-permalink" href="#Expected-output" title="Permalink"></a></h2><pre><code class="nohighlight hljs"></code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../graph_node/">« Neural Graph Ordinary Differential Equations</a><a class="docs-footer-nextpage" href="../../api/layers/">Layers »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.19 on <span class="colophon-date" title="Sunday 3 July 2022 00:28">Sunday 3 July 2022</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
