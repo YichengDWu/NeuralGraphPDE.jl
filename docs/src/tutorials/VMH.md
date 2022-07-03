@@ -149,7 +149,7 @@ The solution data has the shape `(space_points , time_points, num_samples)`. We 
 Then we flatten the first two dimensions, `(1, space_points * num_samples, time_points)`, and use the initial condition as the input to the model.
 The output of the model will be of size `(1, space_points * time_points, num_samples)`.
 
-```@example ngpde
+```julia
 mydevice = CUDA.functional() ? gpu : cpu
 train_loader = DataLoader(train_data, batchsize = 24, shuffle = true)
 
