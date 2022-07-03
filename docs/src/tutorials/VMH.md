@@ -162,7 +162,8 @@ st = st |> mydevice
 st_opt = Optimisers.setup(opt, ps)
 
 for i in 1:200
-    global st # hide
+    st = st #hide
+    ps = ps #hide 
     for (g, u) in train_loader
         g = g |> mydevice
         st = updategraph(st, g)
