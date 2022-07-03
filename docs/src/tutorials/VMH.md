@@ -21,7 +21,6 @@ using Flux.Losses: mse
 import Lux: initialparameters, initialstates
 using NNlib
 using DiffEqFlux: NeuralODE
-using Statistics: mean
 ```
 
 ## Load data
@@ -73,7 +72,7 @@ We will use only one message passing layer. The layer will have the following st
 initialparameters(rng::AbstractRNG, node::NeuralODE) = initialparameters(rng, node.model) 
 initialstates(rng::AbstractRNG, node::NeuralODE) = initialstates(rng, node.model)
 
-act = gelu
+act = tanh
 nhidden = 60
 nout = 40
 
@@ -163,6 +162,7 @@ st = st |> mydevice
 st_opt = Optimisers.setup(opt, ps)
 
 for i in 1:200
+    global st # hide
     for (g, u) in train_loader
         g = g |> mydevice
         st = updategraph(st, g)
