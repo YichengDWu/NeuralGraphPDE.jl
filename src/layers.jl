@@ -513,11 +513,11 @@ function GNOConv(ch::Pair{Int, Int}, ϕ::AbstractExplicitLayer, activation = ide
     GNOConv{bias, typeof(aggr)}(first(ch), last(ch), initialgraph, aggr, linear, ϕ)
 end
 
-function (l::GNOConv{bias})(x::AbstractArray, ps, st::NamedTuple) where {bias}
+function (l::GNOConv{bias})(x::AbstractMatrix, ps, st::NamedTuple) where {bias}
     l(x, ps, st, Val(isempty(st.graph.ndata)))
 end
 
-function (l::GNOConv{bias})(x::AbstractArray, ps, st::NamedTuple, ::Val{false}) where {bias}
+function (l::GNOConv{bias})(x::AbstractMatrix, ps, st::NamedTuple, ::Val{false}) where {bias}
     g = st.graph
     s = g.ndata
     edge_features = keys(s)
@@ -544,7 +544,7 @@ function (l::GNOConv{bias})(x::AbstractArray, ps, st::NamedTuple, ::Val{false}) 
     return y, st
 end
 
-function (l::GNOConv{bias})(x::AbstractArray, ps, st::NamedTuple, ::Val{true}) where {bias}
+function (l::GNOConv{bias})(x::AbstractMatrix, ps, st::NamedTuple, ::Val{true}) where {bias}
     g = st.graph
     e = g.edata
 
@@ -561,14 +561,14 @@ function (l::GNOConv{bias})(x::AbstractArray, ps, st::NamedTuple, ::Val{true}) w
 
     m = propagate(message, g, l.aggr, xi = x, xj = x, e = e)
 
-    y = l.linear.activation(_linearmap(x, m, ps.linear, Val(bias)))
+    y =  applyactivation(l.linear.activation, _linearmap(x, m, ps.linear, Val(bias)))
     return y, st
 end
 
-function _linearmap(x::AbstractArray, m::AbstractArray, ps, ::Val{true})
-    ps.weight * x .+ m .+ ps.bias
+@inline function _linearmap(x::AbstractMatrix, m::AbstractMatrix, ps, ::Val{true})
+    elementwise_add(elementwise_add(ps.weight * x, m), ps.bias)
 end
 
-function _linearmap(x::AbstractArray, m::AbstractArray, ps, ::Val{false})
-    ps.weight * x .+ m
+@inline function _linearmap(x::AbstractMatrix, m::AbstractMatrix, ps, ::Val{false})
+    elementwise_add(ps.weight * x, m)
 end
