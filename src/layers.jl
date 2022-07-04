@@ -524,17 +524,17 @@ function (l::GNOConv{bias})(x::AbstractMatrix, ps, st::NamedTuple) where {bias}
         si, sj = xi[nkeys], xj[nkeys]
         si, sj = reduce(vcat, values(si), init = initarray),
                  reduce(vcat, values(sj), init = initarray)
+
         e = reduce(vcat, values(e), init = initarray)
 
         W, st_ϕ = l.ϕ(vcat(si, sj, e), ps.ϕ, st.ϕ)
         st = merge(st, (; ϕ = st_ϕ))
 
         hj = xj.h_
-        nin, nedges = size(hj)
-        W = reshape(W, :, nin, nedges)
-        hj = reshape(hj, (nin, 1, nedges))
+        W = reshape(W, :, l.in_chs, num_edges)
+        hj = reshape(hj, l.in_chs, 1, num_edges)
         m = NNlib.batched_mul(W, hj)
-        return reshape(m, :, nedges)
+        return reshape(m, :, num_edges)
     end
 
     xs = merge((; h_ = x), s)
