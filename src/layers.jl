@@ -419,7 +419,7 @@ function (l::MPPDEConv)(x::AbstractArray, ps, st::NamedTuple)
 end
 
 @doc raw"""
-    GNOConv(in_chs => out_chs, ϕ; initialgraph = initialgraph, aggr = mean)
+    GNOConv(in_chs => out_chs, ϕ; initialgraph = initialgraph, aggr = mean, bias = true)
 
 Convolutional layer from [Neural Operator: Graph Kernel Network for Partial Differential Equations](https://openreview.net/forum?id=5fbUEUTZEn7). 
 ```math
@@ -431,11 +431,12 @@ Convolutional layer from [Neural Operator: Graph Kernel Network for Partial Diff
 
 # Arguments
 
-- `in_chs`: The number of input channels.
-- `out_chs`: The number of output channels.
-- `ϕ`: The neural network for the message function. The output size of `ϕ` should be `in_chs * out_chs`.
+- `in_chs`: Number of input channels.
+- `out_chs`: Number of output channels.
+- `ϕ`: Neural network for the message function. The output size of `ϕ` should be `in_chs * out_chs`.
 - `initialgraph`: `GNNGraph` or a function that returns a `GNNGraph`
 - `aggr`: Aggregation operator for the incoming messages (e.g. `+`, `*`, `max`, `min`, and `mean`).
+- `bias`: Whether to add bias to the output.
 
 # Inputs
 
@@ -453,7 +454,7 @@ Convolutional layer from [Neural Operator: Graph Kernel Network for Partial Diff
 
 # States
 
-- `graph`: `GNNGraph`. All features in `graph.ndata` will be concatenated and then fed into `ϕ`.
+- `graph`: `GNNGraph`. All features are stored in either `graph.ndata` or `graph.edata`. They will be concatenated and then fed into `ϕ`.
 
 # Examples
 ```julia
@@ -468,6 +469,12 @@ l = GNOConv(5 => 7, ϕ, initialgraph = g)
 rng = Random.default_rng()
 ps, st = Lux.setup(rng, l)
 
+y, st = l(h, ps, st)
+
+#edge features
+e = rand(2 + 2 + 3 + 3, 6)
+g = GNNGraph(g, edata = e)
+st = update(st, g)
 y, st = l(h, ps, st)
 ```
 
@@ -507,6 +514,10 @@ function GNOConv(ch::Pair{Int, Int}, ϕ::AbstractExplicitLayer, activation = ide
 end
 
 function (l::GNOConv{true})(x::AbstractArray, ps, st::NamedTuple)
+    l(x,ps,st,Val(isempty(st.graph.ndata)))
+end
+
+function (l::GNOConv{true})(x::AbstractArray, ps, st::NamedTuple, ::Val{false})
     g = st.graph
     s = g.ndata
     edge_features = keys(s)
@@ -529,33 +540,36 @@ function (l::GNOConv{true})(x::AbstractArray, ps, st::NamedTuple)
     xs = merge((; h = x), s)
     m = propagate(message, g, l.aggr, xi = xs, xj = xs)
 
-    y = l.linear.activation(ps.linear.weight * x .+ m .+ ps.linear.bias)
+    y = l.linear.activation(_linearmap(x,m,ps.linear, Val(bias)))
     return y, st
 end
 
-function (l::GNOConv{false})(x::AbstractArray, ps, st::NamedTuple)
+function (l::GNOConv{true})(x::AbstractArray, ps, st::NamedTuple, ::Val{true})
     g = st.graph
-    s = g.ndata
-    edge_features = keys(s)
+    e = g.edata
 
     function message(xi, xj, e)
-        si, sj = xi[edge_features], xj[edge_features]
-        si, sj = reduce(vcat, values(si)), reduce(vcat, values(sj))
-
-        W, st_ϕ = l.ϕ(vcat(si, sj), ps.ϕ, st.ϕ)
+        W, st_ϕ = l.ϕ(reduce(vcat, values(e)), ps.ϕ, st.ϕ)
         st = merge(st, (; ϕ = st_ϕ))
 
-        hj = xj.h
-        nin, nedges = size(hj)
+        nin, nedges = size(xj)
         W = reshape(W, :, nin, nedges)
-        hj = reshape(hj, (nin, 1, nedges))
-        m = NNlib.batched_mul(W, hj)
+        xj = reshape(xj, (nin, 1, nedges))
+        m = NNlib.batched_mul(W, xj)
         return reshape(m, :, nedges)
     end
 
-    xs = merge((; h = x), s)
-    m = propagate(message, g, l.aggr, xi = xs, xj = xs)
+    m = propagate(message, g, l.aggr, xi = x, xj = x, e = e)
 
-    y = l.linear.activation(ps.linear.weight * x .+ m)
+    y = l.linear.activation(_linearmap(x,m,ps.linear, Val(bias)))
     return y, st
+
+end
+
+function _linearmap(x::AbstractArray, m::AbstractArray, ps, ::Val{true})
+    ps.weight * x .+ m .+ ps.bias
+end
+
+function _linearmap(x::AbstractArray, m::AbstractArray, ps, ::Val{false})
+    ps.linear.weight * x .+ m 
 end
