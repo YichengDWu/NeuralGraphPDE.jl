@@ -474,7 +474,7 @@ y, st = l(h, ps, st)
 #edge features
 e = rand(2 + 2 + 3 + 3, 6)
 g = GNNGraph(g, edata = e)
-st = update(st, g)
+st = updategraph(st, g)
 y, st = l(h, ps, st)
 ```
 
@@ -513,12 +513,12 @@ function GNOConv(ch::Pair{Int, Int}, ϕ::AbstractExplicitLayer, activation = ide
     GNOConv{bias, typeof(aggr)}(first(ch), last(ch), initialgraph, aggr, linear, ϕ)
 end
 
-function (l::GNOConv{true})(x::AbstractArray, ps, st::NamedTuple)
+function (l::GNOConv{bias})(x::AbstractArray, ps, st::NamedTuple) where {bias}
     l(x,ps,st,Val(isempty(st.graph.ndata)))
 end
 
-function (l::GNOConv{true})(x::AbstractArray, ps, st::NamedTuple, ::Val{false})
-    g = st.graph
+function (l::GNOConv{bias})(x::AbstractArray, ps, st::NamedTuple, ::Val{false}) where {bias}
+    g = st.graph 
     s = g.ndata
     edge_features = keys(s)
 
@@ -544,7 +544,7 @@ function (l::GNOConv{true})(x::AbstractArray, ps, st::NamedTuple, ::Val{false})
     return y, st
 end
 
-function (l::GNOConv{true})(x::AbstractArray, ps, st::NamedTuple, ::Val{true})
+function (l::GNOConv{bias})(x::AbstractArray, ps, st::NamedTuple, ::Val{true}) where {bias}
     g = st.graph
     e = g.edata
 
@@ -571,5 +571,5 @@ function _linearmap(x::AbstractArray, m::AbstractArray, ps, ::Val{true})
 end
 
 function _linearmap(x::AbstractArray, m::AbstractArray, ps, ::Val{false})
-    ps.linear.weight * x .+ m 
+    ps.weight * x .+ m 
 end
