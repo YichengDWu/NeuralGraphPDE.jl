@@ -519,12 +519,13 @@ function (l::GNOConv{bias})(x::AbstractMatrix, ps, st::NamedTuple) where {bias}
     nkeys = keys(s)
     num_edges = g.num_edges
     initarray = similar(x, 0, num_edges)
-    
+
     function message(xi, xj, e)
         si, sj = xi[nkeys], xj[nkeys]
-        si, sj = reduce(vcat, values(si), init = initarray), reduce(vcat, values(sj),init = initarray)
+        si, sj = reduce(vcat, values(si), init = initarray),
+                 reduce(vcat, values(sj), init = initarray)
         e = reduce(vcat, values(e), init = initarray)
- 
+
         W, st_ϕ = l.ϕ(vcat(si, sj, e), ps.ϕ, st.ϕ)
         st = merge(st, (; ϕ = st_ϕ))
 
@@ -539,7 +540,7 @@ function (l::GNOConv{bias})(x::AbstractMatrix, ps, st::NamedTuple) where {bias}
     xs = merge((; h_ = x), s)
     m = propagate(message, g, l.aggr, xi = xs, xj = xs, e = g.edata)
 
-    y =  applyactivation(l.linear.activation, _linearmap(x, m, ps.linear, Val(bias)))
+    y = applyactivation(l.linear.activation, _linearmap(x, m, ps.linear, Val(bias)))
     return y, st
 end
 
