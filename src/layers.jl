@@ -514,22 +514,21 @@ function GNOConv(ch::Pair{Int, Int}, ϕ::AbstractExplicitLayer, activation = ide
 end
 
 function (l::GNOConv{bias})(x::AbstractMatrix, ps, st::NamedTuple) where {bias}
-    l(x, ps, st, Val(isempty(st.graph.ndata)))
-end
-
-function (l::GNOConv{bias})(x::AbstractMatrix, ps, st::NamedTuple, ::Val{false}) where {bias}
     g = st.graph
     s = g.ndata
-    edge_features = keys(s)
-
+    nkeys = keys(s)
+    num_edges = g.num_edges
+    initarray = similar(x, 0, num_edges)
+    
     function message(xi, xj, e)
-        si, sj = xi[edge_features], xj[edge_features]
-        si, sj = reduce(vcat, values(si)), reduce(vcat, values(sj))
-
-        W, st_ϕ = l.ϕ(vcat(si, sj), ps.ϕ, st.ϕ)
+        si, sj = xi[nkeys], xj[nkeys]
+        si, sj = reduce(vcat, values(si), init = initarray), reduce(vcat, values(sj),init = initarray)
+        e = reduce(vcat, values(e), init = initarray)
+ 
+        W, st_ϕ = l.ϕ(vcat(si, sj, e), ps.ϕ, st.ϕ)
         st = merge(st, (; ϕ = st_ϕ))
 
-        hj = xj.h
+        hj = xj.h_
         nin, nedges = size(hj)
         W = reshape(W, :, nin, nedges)
         hj = reshape(hj, (nin, 1, nedges))
@@ -537,29 +536,8 @@ function (l::GNOConv{bias})(x::AbstractMatrix, ps, st::NamedTuple, ::Val{false})
         return reshape(m, :, nedges)
     end
 
-    xs = merge((; h = x), s)
-    m = propagate(message, g, l.aggr, xi = xs, xj = xs)
-
-    y = l.linear.activation(_linearmap(x, m, ps.linear, Val(bias)))
-    return y, st
-end
-
-function (l::GNOConv{bias})(x::AbstractMatrix, ps, st::NamedTuple, ::Val{true}) where {bias}
-    g = st.graph
-    e = g.edata
-
-    function message(xi, xj, e)
-        W, st_ϕ = l.ϕ(reduce(vcat, values(e)), ps.ϕ, st.ϕ)
-        st = merge(st, (; ϕ = st_ϕ))
-
-        nin, nedges = size(xj)
-        W = reshape(W, :, nin, nedges)
-        xj = reshape(xj, (nin, 1, nedges))
-        m = NNlib.batched_mul(W, xj)
-        return reshape(m, :, nedges)
-    end
-
-    m = propagate(message, g, l.aggr, xi = x, xj = x, e = e)
+    xs = merge((; h_ = x), s)
+    m = propagate(message, g, l.aggr, xi = xs, xj = xs, e = g.edata)
 
     y =  applyactivation(l.linear.activation, _linearmap(x, m, ps.linear, Val(bias)))
     return y, st

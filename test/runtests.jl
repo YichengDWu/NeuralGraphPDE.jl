@@ -120,7 +120,7 @@ import Flux: batch, unbatch
             in_chs, out_chs = 5, 7
             h = randn(in_chs, g.num_nodes)
             ϕ = Dense(2 + 2 + 3 + 3 => in_chs * out_chs)
-            l = GNOConv(5 => 7, ϕ, initialgraph = g)
+            l = GNOConv(in_chs => out_chs, ϕ, initialgraph = g)
 
             rng = Random.default_rng()
             ps, st = Lux.setup(rng, l)
@@ -136,7 +136,8 @@ import Flux: batch, unbatch
             @test size(y) == (7, g.num_nodes)
 
             e = rand(2 + 2 + 3 + 3, g.num_edges)
-            g = GNNGraph(g, edata = e)
+            g = GNNGraph(edge_index(g), edata = e)
+
             st = updategraph(st, g)
             y, st = l(h, ps, st)
 
