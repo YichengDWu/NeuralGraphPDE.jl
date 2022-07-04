@@ -135,7 +135,7 @@ import Flux: batch, unbatch
             y, st = l(h, ps, st)
             @test size(y) == (7, g.num_nodes)
 
-            e = rand(2 + 2 + 3 + 3, 6)
+            e = rand(2 + 2 + 3 + 3, g.num_edges)
             g = GNNGraph(g, edata = e)
             st = updategraph(st, g)
             y, st = l(h, ps, st)
