@@ -69,7 +69,7 @@ diffeqsol_to_array(x::ODESolution) = Array(x)
 We will use only one message passing layer. The layer will have the following structure:
 
 ```@example ngpde
-initialparameters(rng::AbstractRNG, node::NeuralODE) = initialparameters(rng, node.model) 
+initialparameters(rng::AbstractRNG, node::NeuralODE) = initialparameters(rng, node.model)
 initialstates(rng::AbstractRNG, node::NeuralODE) = initialstates(rng, node.model)
 
 act = tanh
