@@ -126,22 +126,21 @@ import Flux: batch, unbatch
             ps, st = Lux.setup(rng, l)
 
             y, st = l(h, ps, st)
-            @test size(y) == (7, g.num_nodes)
+            @test size(y) == (out_chs, g.num_nodes)
 
-            l = GNOConv(5 => 7, ϕ, initialgraph = g, bias = false)
+            l = GNOConv(in_chs => out_chs, ϕ, initialgraph = g)
             rng = Random.default_rng()
             ps, st = Lux.setup(rng, l)
 
             y, st = l(h, ps, st)
-            @test size(y) == (7, g.num_nodes)
+            @test size(y) == (out_chs, g.num_nodes)
 
-            e = rand(2 + 2 + 3 + 3, g.num_edges)
-            g = GNNGraph(edge_index(g), edata = e)
+            g = GNNGraph(g, ndata = NamedTuple(), edata = rand(2 + 2 + 3 + 3, g.num_edges))
 
             st = updategraph(st, g)
             y, st = l(h, ps, st)
 
-            @test size(y) == (7, g.num_nodes)
+            @test size(y) == (out_chs, g.num_nodes)
         end
     end
 end

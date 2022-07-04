@@ -3,11 +3,11 @@ import Base: copy
 @inline drop(nt::NamedTuple, key::Symbol) = Base.structdiff(nt, NamedTuple{(key,)})
 
 """
-    copy(g::GNNGraph)
+    copy(g::GNNGraph, kwarg...)
 
 Create a shollow copy of the input graph `g`. This is equivalent to `GNNGraph(g)`.
 """
-copy(g::GNNGraph) = GNNGraph(g)
+copy(g::GNNGraph, kwarg...) = GNNGraph(g, kwarg...)
 
 @doc raw"""
     wrapgraph(g::GNNGraph) = () -> copy(g)
