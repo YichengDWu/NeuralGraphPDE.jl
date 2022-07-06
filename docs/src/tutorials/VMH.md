@@ -185,5 +185,24 @@ train()
 ## Expected output
 
 ```
-
+[ Info: epoch 10 | train loss = 0.02720912251427  0.53685   0.425613  0.71604
+[ Info: epoch 20 | train loss = 0.026874812
+[ Info: epoch 30 | train loss = 0.025392009
+[ Info: epoch 40 | train loss = 0.023239506
+[ Info: epoch 50 | train loss = 0.010599495
+[ Info: epoch 60 | train loss = 0.010421633
+[ Info: epoch 70 | train loss = 0.0098072495
+[ Info: epoch 80 | train loss = 0.008936066
+[ Info: epoch 90 | train loss = 0.0063929264
+[ Info: epoch 100 | train loss = 0.004207685
+[ Info: epoch 110 | train loss = 0.0026181203
+[ Info: epoch 120 | train loss = 0.0023022622
+[ Info: epoch 130 | train loss = 0.0019534715
+[ Info: epoch 140 | train loss = 0.0017379699
+[ Info: epoch 150 | train loss = 0.0015728847
+[ Info: epoch 160 | train loss = 0.0013444767
+[ Info: epoch 170 | train loss = 0.0012353633
+[ Info: epoch 180 | train loss = 0.0011409305
+[ Info: epoch 190 | train loss = 0.0010424983
+[ Info: epoch 200 | train loss = 0.0009809926
 ```
