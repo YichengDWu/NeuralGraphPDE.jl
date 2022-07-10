@@ -1,7 +1,7 @@
 # Neural Graph Partial Differential Equations
 
 This tutorial is adapted from the paper [LEARNING CONTINUOUS-TIME PDES FROM SPARSE DATA WITH GRAPH NEURAL NETWORKS](https://github.com/yakovlev31/graphpdes_experiments/blob/master/convdiff/train.py).
-We will use graph neural networks to learn the dynamics of the convection-diffusion equation defined as
+We will use [`VMHConv`](@ref) to learn the dynamics of the convection-diffusion equation defined as
 
 ```math
 \frac{\partial u(x, y, t)}{\partial t}=0.25 \nabla^{2} u(x, y, t)-\mathbf{v} \cdot \nabla u(x, y, t).
