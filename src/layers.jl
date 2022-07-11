@@ -360,6 +360,7 @@ Convolutional layer from [Message Passing Neural PDE Solvers](https://arxiv.org/
 # States
 - `graph`: `GNNGraph` for which `graph.gdata.θ` represents the graph level features of the underlying PDE. `θ` should be a matrix
     of the size `(num_feats, num_graphs)`. You can store `u`(`x`) in `graph.ndata` or `u_j-u_i`(`x_jx_i`) in `graph.edata`.
+    If `g` is a batched graph, then currently all graphs need to have the same structure.
 
     # Examples
 ```julia
