@@ -43,7 +43,7 @@ Edge convolutional layer.
 
 # Arguments
 
-- `ϕ`: A neural network. 
+- `ϕ`: A neural network.
 - `initialgraph`: `GNNGraph` or a function that returns a `GNNGraph`
 - `aggr`: Aggregation operator for the incoming messages (e.g. `+`, `*`, `max`, `min`, and `mean`).
 
@@ -120,9 +120,9 @@ end
 Same as the one in GraphNeuralNetworks.jl but with exiplicit paramters.
 
 # Arguments
-    
+
 - `initialgraph`: `GNNGraph` or a function that returns a `GNNGraph`
-    
+
 # Examples
 
 ```julia
@@ -133,7 +133,7 @@ g = GNNGraph(s, t)
 x = randn(3, g.num_nodes)
 
 # create layer
-l = ExplicitGCNConv(3 => 5, initialgraph = g) 
+l = ExplicitGCNConv(3 => 5, initialgraph = g)
 
 # setup layer
 rng = Random.default_rng()
@@ -254,7 +254,7 @@ Convolutional layer from [Learning continuous-time PDEs from sparse data with gr
 
 # Arguments
 
-- `ϕ`: The neural network for the message function. 
+- `ϕ`: The neural network for the message function.
 - `γ`: The neural network for the update function.
 - `initialgraph`: `GNNGraph` or a function that returns a `GNNGraph`
 - `aggr`: Aggregation operator for the incoming messages (e.g. `+`, `*`, `max`, `min`, and `mean`).
@@ -293,7 +293,7 @@ ps, st = Lux.setup(rng, l)
 
 y, st = l(u, ps, st)
 ```
-                    
+
 """
 struct VMHConv{M1, M2, A} <: AbstractGNNContainerLayer{(:ϕ, :γ)}
     initialgraph::Function
@@ -337,7 +337,7 @@ end
 
 @doc raw"""
     MPPDEConv(ϕ, ψ; initialgraph = initialgraph, aggr = mean, local_features = (:u, :x))
-Convolutional layer from [Message Passing Neural PDE Solvers](https://arxiv.org/abs/2202.03376), without the temporal bulking trick. 
+Convolutional layer from [Message Passing Neural PDE Solvers](https://arxiv.org/abs/2202.03376), without the temporal bulking trick.
 ```math
 \begin{aligned}
 	\mathbf{m}_i&=\Box _{j\in N(i)}\,\phi (\mathbf{h}_i,\mathbf{h}_j;\mathbf{u}_i-\mathbf{u}_j;\mathbf{x}_i-\mathbf{x}_j;\theta )\\
@@ -345,11 +345,11 @@ Convolutional layer from [Message Passing Neural PDE Solvers](https://arxiv.org/
 \end{aligned}
 ```
 # Arguments
-- `ϕ`: The neural network for the message function. 
+- `ϕ`: The neural network for the message function.
 - `ψ`: The neural network for the update function.
 - `initialgraph`: `GNNGraph` or a function that returns a `GNNGraph`
 - `aggr`: Aggregation operator for the incoming messages (e.g. `+`, `*`, `max`, `min`, and `mean`).
-- `local_features`: The features that will be differentiated in the message function. 
+
 # Inputs
 - `h`: Trainable node embeddings, `Array`.
 # Returns
@@ -358,9 +358,10 @@ Convolutional layer from [Message Passing Neural PDE Solvers](https://arxiv.org/
 - Parameters of `ϕ`.
 - Parameters of `ψ`.
 # States
-- `graph`: `GNNGraph` where `graph.ndata.x` represents the spatial coordinates of nodes, `graph.ndata.u` represents the initial condition, and `graph.gdata.θ` represents the graph level features of the underlying PDE. `θ` should be a matrix
-    of the size `(num_feats, num_graphs)`. If `g` is a batched graph, then all graphs need to have the same structure.
-# Examples
+- `graph`: `GNNGraph` for which `graph.gdata.θ` represents the graph level features of the underlying PDE. `θ` should be a matrix
+    of the size `(num_feats, num_graphs)`. You can store `u`(`x`) in `graph.ndata` or `u_j-u_i`(`x_jx_i`) in `graph.edata`.
+
+    # Examples
 ```julia
 g = rand_graph(10, 6)
 g = GNNGraph(g, ndata = (; u = rand(2, 10), x = rand(3, 10)), gdata = (; θ = rand(4)))
@@ -373,9 +374,8 @@ ps, st = Lux.setup(rng, l)
 y, st = l(h, ps, st)
 ```
 """
-struct MPPDEConv{L, M1, M2, A} <: AbstractGNNContainerLayer{(:ϕ, :ψ)}
+struct MPPDEConv{A, M1, M2} <: AbstractGNNContainerLayer{(:ϕ, :ψ)}
     initialgraph::Function
-    local_features::L
     ϕ::M1
     ψ::M2
     aggr::A
@@ -383,11 +383,9 @@ end
 
 function MPPDEConv(ϕ::AbstractExplicitLayer, ψ::AbstractExplicitLayer;
                    aggr = mean,
-                   initialgraph = initialgraph,
-                   local_features = (:u, :x))
+                   initialgraph = initialgraph)
     initialgraph = wrapgraph(initialgraph)
-    MPPDEConv{typeof(local_features), typeof(ϕ), typeof(ψ),
-              typeof(aggr)}(initialgraph, local_features, ϕ, ψ, aggr)
+    MPPDEConv{typeof(aggr), typeof(ϕ), typeof(ψ)}(initialgraph, ϕ, ψ, aggr)
 end
 
 function (l::MPPDEConv)(x::AbstractArray, ps, st::NamedTuple)
@@ -395,22 +393,28 @@ function (l::MPPDEConv)(x::AbstractArray, ps, st::NamedTuple)
     num_nodes = g.num_nodes
     num_edges = g.num_edges
     num_graphs = g.num_graphs
+    s = g.ndata
+    e = g.edata
     θ = reduce(vcat, values(st.graph.gdata), init = similar(x, 0, num_graphs))
 
+    nkeys = keys(s)
+    initarray = similar(x, 0, num_edges)
+
     function message(xi, xj, e)
-        di, dj = reduce(vcat, values(xi[l.local_features])),
-                 reduce(vcat, values(xj[l.local_features]))
-        hi, hj = xi.h, xj.h
-        m, st_ϕ = l.ϕ(vcat(hi, hj, di .- dj,
+        di, dj = xi[nkeys], xj[nkeys]
+        di, dj = reduce(vcat, values(di), init = initarray),
+                 reduce(vcat, values(dj), init = initarray)
+
+        e = reduce(vcat, values(e), init = initarray)
+        hi, hj = xi.preservedname, xj.preservedname
+        m, st_ϕ = l.ϕ(vcat(hi, hj, di .- dj, e,
                            repeat(θ, inner = (1, num_edges ÷ num_graphs))), ps.ϕ, st.ϕ)
         st = merge(st, (; ϕ = st_ϕ))
         return m
     end
 
-    s = g.ndata
-
-    xs = merge((; h = x), s)
-    m = propagate(message, g, l.aggr, xi = xs, xj = xs)
+    xs = merge((; preservedname = x), s)
+    m = propagate(message, g, l.aggr, xi = xs, xj = xs, e = e)
 
     y, st_ψ = l.ψ(vcat(x, m, repeat(θ, inner = (1, num_nodes ÷ num_graphs))), ps.ψ, st.ψ)
     st = merge(st, (; ψ = st_ψ))
@@ -421,7 +425,7 @@ end
 @doc raw"""
     GNOConv(in_chs => out_chs, ϕ; initialgraph = initialgraph, aggr = mean, bias = true)
 
-Convolutional layer from [Neural Operator: Graph Kernel Network for Partial Differential Equations](https://openreview.net/forum?id=5fbUEUTZEn7). 
+Convolutional layer from [Neural Operator: Graph Kernel Network for Partial Differential Equations](https://openreview.net/forum?id=5fbUEUTZEn7).
 ```math
 \begin{aligned}
 	\mathbf{m}_i&=\Box _{j\in N(i)}\,\phi (\mathbf{a}_i,\mathbf{a}_j,\mathbf{x}_i,\mathbf{x}_j)\mathbf{h}_j\\
