@@ -359,7 +359,7 @@ Convolutional layer from [Message Passing Neural PDE Solvers](https://arxiv.org/
 - Parameters of `ψ`.
 # States
 - `graph`: `GNNGraph` where `graph.ndata.x` represents the spatial coordinates of nodes, `graph.ndata.u` represents the initial condition, and `graph.gdata.θ` represents the graph level features of the underlying PDE. `θ` should be a matrix
-of the size `(num_feats, num_graphs)`. If `g` is a batched graph, then all graphs need to have the same structure.
+    of the size `(num_feats, num_graphs)`. If `g` is a batched graph, then all graphs need to have the same structure.
 # Examples
 ```julia
 g = rand_graph(10, 6)
