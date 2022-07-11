@@ -5,6 +5,7 @@ using Lux
 using Lux: parameterlength
 using Test
 import Flux: batch, unbatch
+using SafeTestsets
 
 @testset "layers" begin
     rng = Random.default_rng()
@@ -27,31 +28,31 @@ import Flux: batch, unbatch
 
         @testset "edge" begin
             u = randn(T, 4, g.num_nodes)
-            g = GNNGraph(g, ndata = (; x = rand(T, 3, g.num_nodes)))
+            gh = GNNGraph(g, ndata = (; x = rand(T, 3, g.num_nodes)))
             nn = Dense(4 + 4 + 3 => 5)
-            l = ExplicitEdgeConv(nn, initialgraph = g)
+            l = ExplicitEdgeConv(nn, initialgraph = gh)
 
             ps, st = Lux.setup(rng, l)
-            @test st == (ϕ = NamedTuple(), graph = g)
+            @test st == (ϕ = NamedTuple(), graph = gh)
             y, _ = l(u, ps, st)
-            @test size(y) == (5, g.num_nodes)
+            @test size(y) == (5, gh.num_nodes)
         end
 
         @testset "VMH" begin
             u = randn(T, 4, g.num_nodes)
-            g = GNNGraph(g, ndata = (; x = rand(T, 3, g.num_nodes)))
+            gh = GNNGraph(g, ndata = (; x = rand(T, 3, g.num_nodes)))
 
             ϕ = Dense(4 + 4 + 3 => 5)
             γ = Dense(5 + 4 => 7)
-            l = VMHConv(ϕ, γ, initialgraph = g)
+            l = VMHConv(ϕ, γ, initialgraph = gh)
 
             rng = Random.default_rng()
             ps, st = Lux.setup(rng, l)
 
             ps, st = Lux.setup(rng, l)
-            @test st == (ϕ = NamedTuple(), γ = NamedTuple(), graph = g)
+            @test st == (ϕ = NamedTuple(), γ = NamedTuple(), graph = gh)
             y, _ = l(u, ps, st)
-            @test size(y) == (7, g.num_nodes)
+            @test size(y) == (7, gh.num_nodes)
         end
 
         @testset "MPPDE" begin
@@ -75,9 +76,24 @@ import Flux: batch, unbatch
                 @test size(y) == (7, g.num_nodes)
             end
 
+            @testset "edge features" begin
+                gh = GNNGraph(g, edata = (u = rand(2, g.num_edges),
+                                          x = rand(3, g.num_edges)),
+                                          gdata = (; θ = rand(4)))
+
+                h = randn(T, 5, g.num_nodes)
+                ϕ = Dense(5 + 5 + 2 + 3 + 4 => 5)
+                ψ = Dense(5 + 5 + 4 => 7)
+                l = MPPDEConv(ϕ, ψ, initialgraph = gh)
+
+                ps, st = Lux.setup(rng, l)
+                y, st = l(h, ps, st)
+                @test size(y) == (7, g.num_nodes)
+            end
+
             @testset "batched graph" begin
                 gh = GNNGraph(g,
-                              ndata = (; u = rand(2, g.num_nodes),
+                              ndata = (u = rand(2, g.num_nodes),
                                        x = rand(3, g.num_nodes)),
                               gdata = (; θ = rand(4)))
                 gh = batch([gh, copy(gh)])
@@ -114,33 +130,33 @@ import Flux: batch, unbatch
         end
 
         @testset "GNOConv" begin
-            g = rand_graph(10, 6)
+            gh = rand_graph(10, 6)
 
-            g = GNNGraph(g, ndata = (; a = rand(2, g.num_nodes), x = rand(3, g.num_nodes)))
+            gh = GNNGraph(gh, ndata = (; a = rand(2, gh.num_nodes), x = rand(3, gh.num_nodes)))
             in_chs, out_chs = 5, 7
-            h = randn(in_chs, g.num_nodes)
+            h = randn(in_chs, gh.num_nodes)
             ϕ = Dense(2 + 2 + 3 + 3 => in_chs * out_chs)
-            l = GNOConv(in_chs => out_chs, ϕ, initialgraph = g)
+            l = GNOConv(in_chs => out_chs, ϕ, initialgraph = gh)
 
             rng = Random.default_rng()
             ps, st = Lux.setup(rng, l)
 
             y, st = l(h, ps, st)
-            @test size(y) == (out_chs, g.num_nodes)
+            @test size(y) == (out_chs, gh.num_nodes)
 
-            l = GNOConv(in_chs => out_chs, ϕ, initialgraph = g)
+            l = GNOConv(in_chs => out_chs, ϕ, initialgraph = gh)
             rng = Random.default_rng()
             ps, st = Lux.setup(rng, l)
 
             y, st = l(h, ps, st)
-            @test size(y) == (out_chs, g.num_nodes)
+            @test size(y) == (out_chs, gh.num_nodes)
 
-            g = GNNGraph(g, ndata = NamedTuple(), edata = rand(2 + 2 + 3 + 3, g.num_edges))
+            gh = GNNGraph(gh, ndata = NamedTuple(), edata = rand(2 + 2 + 3 + 3, gh.num_edges))
 
-            st = updategraph(st, g)
+            st = updategraph(st, gh)
             y, st = l(h, ps, st)
 
-            @test size(y) == (out_chs, g.num_nodes)
+            @test size(y) == (out_chs, gh.num_nodes)
         end
     end
 end
