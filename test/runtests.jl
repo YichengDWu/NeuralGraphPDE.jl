@@ -77,9 +77,10 @@ using SafeTestsets
             end
 
             @testset "edge features" begin
-                gh = GNNGraph(g, edata = (u = rand(2, g.num_edges),
-                                          x = rand(3, g.num_edges)),
-                                          gdata = (; θ = rand(4)))
+                gh = GNNGraph(g,
+                              edata = (u = rand(2, g.num_edges),
+                                       x = rand(3, g.num_edges)),
+                              gdata = (; θ = rand(4)))
 
                 h = randn(T, 5, g.num_nodes)
                 ϕ = Dense(5 + 5 + 2 + 3 + 4 => 5)
@@ -132,7 +133,8 @@ using SafeTestsets
         @testset "GNOConv" begin
             gh = rand_graph(10, 6)
 
-            gh = GNNGraph(gh, ndata = (; a = rand(2, gh.num_nodes), x = rand(3, gh.num_nodes)))
+            gh = GNNGraph(gh,
+                          ndata = (; a = rand(2, gh.num_nodes), x = rand(3, gh.num_nodes)))
             in_chs, out_chs = 5, 7
             h = randn(in_chs, gh.num_nodes)
             ϕ = Dense(2 + 2 + 3 + 3 => in_chs * out_chs)
@@ -151,7 +153,8 @@ using SafeTestsets
             y, st = l(h, ps, st)
             @test size(y) == (out_chs, gh.num_nodes)
 
-            gh = GNNGraph(gh, ndata = NamedTuple(), edata = rand(2 + 2 + 3 + 3, gh.num_edges))
+            gh = GNNGraph(gh, ndata = NamedTuple(),
+                          edata = rand(2 + 2 + 3 + 3, gh.num_edges))
 
             st = updategraph(st, gh)
             y, st = l(h, ps, st)
