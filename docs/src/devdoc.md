@@ -53,9 +53,9 @@ function (l::MyGNNLayer)(x,ps,st)
 end
 ```
 
-## AbstractExplicitContainerLayer
+## AbstractGNNContainerLayer
 
-You should only subtype your layer to `AbstractExplicitContainerLayer` then
+You should only subtype your layer to `AbstractGNNContainerLayer` when
 
  1. you need to write a custom message function, and
  2. the layer contains other layers.
@@ -71,7 +71,7 @@ function message(xi, xj, e)
 end
 ```
 
-Note that if you have only one neural layer insider a `AbstractExplicitContainerLayer`, then the parameters will be reduced but not the states.
+Note that if you have only one neural layer insider a `AbstractGNNContainerLayer`, then the parameters will be reduced but not the states.
 
 ```julia
 julia> l = ExplicitEdgeConv(nn, initialgraph = g)
