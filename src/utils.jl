@@ -13,7 +13,7 @@ copy(g::GNNGraph, kwarg...) = GNNGraph(g, kwarg...)
     wrapgraph(g::GNNGraph) = () -> copy(g)
     wrapgraph(f::Function) = f
 
-Creater a function wrapper of the input graph. 
+Creater a function wrapper of the input graph.
 """
 wrapgraph(g::GNNGraph) = () -> copy(g)
 wrapgraph(f::Function) = f
@@ -33,3 +33,10 @@ function updategraph(st::NamedTuple, g::GNNGraph)
     end
     return st
 end
+
+@inline _flatten(x::AbstractMatrix) = x
+@inline function _flatten(x::AbstractArray{T, N}) where {T, N}
+    s = size(x)
+    return reshape(x, s[1:(end - 2)]..., s[end - 1] * s[end])
+end
+@inline _flatten(x::NamedTuple) = map(d -> _flatten(d), x)
