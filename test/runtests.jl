@@ -113,7 +113,6 @@ using SafeTestsets
                 ps, st = Lux.setup(rng, l)
                 y, st = l(h, ps, st)
                 @test size(y) == (7, gh.num_nodes)
-
             end
 
             @testset "Without theta" begin
