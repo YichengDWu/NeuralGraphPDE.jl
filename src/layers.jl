@@ -314,8 +314,6 @@ function (l::VMHConv)(x::AbstractArray, ps, st::NamedTuple)
 end
 
 function (l::VMHConv)(x::NamedTuple, ps, st::NamedTuple)
-    x = _flatten(x)
-
     function message(xi, xj, e)
         posi, posj = xi.x, xj.x
         hi, hj = values(drop(xi, :x)), values(drop(xj, :x))
@@ -393,7 +391,6 @@ function MPPDEConv(ϕ::AbstractExplicitLayer, ψ::AbstractExplicitLayer;
 end
 
 function (l::MPPDEConv)(x::AbstractArray, ps, st::NamedTuple)
-    x = _flatten(x)
     g = st.graph
     num_nodes = g.num_nodes
     num_edges = g.num_edges
@@ -522,8 +519,7 @@ function GNOConv(ch::Pair{Int, Int}, ϕ::AbstractExplicitLayer, activation = ide
     GNOConv{bias, typeof(aggr)}(first(ch), last(ch), initialgraph, aggr, linear, ϕ)
 end
 
-function (l::GNOConv{bias})(x::AbstractArray, ps, st::NamedTuple) where {bias}
-    x = _flatten(x)
+function (l::GNOConv{bias})(x::AbstractMatrix, ps, st::NamedTuple) where {bias}
     g = st.graph
     s = g.ndata
     nkeys = keys(s)
