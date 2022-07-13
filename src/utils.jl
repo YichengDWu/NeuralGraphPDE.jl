@@ -35,5 +35,8 @@ function updategraph(st::NamedTuple, g::GNNGraph)
 end
 
 @inline _flatten(x::AbstractMatrix) = x
-@inline _flatten(x::AbstractArray{T, 3}) where {T} = reshape(x, siz(x, 2) * size(x, 3))
+@inline function _flatten(x::AbstractArray{T, N}) where {T, N}
+    s = size(x)
+    return reshape(x, s[1:(end - 2)]..., s[end - 1] * s[end])
+end
 @inline _flatten(x::NamedTuple) = map(d -> _flatten(d), x)
