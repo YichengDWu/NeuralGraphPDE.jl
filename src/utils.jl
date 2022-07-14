@@ -24,7 +24,7 @@ Recursively replace the value of `graph` with a shallow copy of `g`.
 """
 function updategraph(st::NamedTuple, g::GNNGraph)
     isempty(st) && return st
-    st = fmap(Base.Fix2(_updategraph, g), st, exclude = x -> x isa GNNGraph)
+    st = fmap(Base.Fix2(_updategraph, copy(g)), st, exclude = x -> x isa GNNGraph)
     return st
 end
 
