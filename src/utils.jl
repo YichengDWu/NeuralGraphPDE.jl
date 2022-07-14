@@ -24,19 +24,8 @@ Recursively replace the value of `graph` with a shallow copy of `g`.
 """
 function updategraph(st::NamedTuple, g::GNNGraph)
     isempty(st) && return st
-    for (key, val) in pairs(st)
-        if key == :graph
-            st = merge(st, (graph = copy(g),))
-        elseif val isa NamedTuple
-            st = merge(st, (key => updategraph(val, g),))
-        end
-    end
+    st = fmap(Base.Fix2(_updategraph, g), st, exclude = x -> x isa GNNGraph)
     return st
 end
 
-@inline _flatten(x::AbstractMatrix) = x
-@inline function _flatten(x::AbstractArray{T, N}) where {T, N}
-    s = size(x)
-    return reshape(x, s[1:(end - 2)]..., s[end - 1] * s[end])
-end
-@inline _flatten(x::NamedTuple) = map(d -> _flatten(d), x)
+_updategraph(og, ng::GNNGraph) = og isa GNNGraph ? ng : og

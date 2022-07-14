@@ -5,6 +5,7 @@ using Lux: AbstractExplicitContainerLayer, AbstractExplicitLayer, glorot_normal,
            glorot_uniform, ones32, zeros32, AbstractRNG, applyactivation, elementwise_add
 using GraphNeuralNetworks: ADJMAT_T
 using Statistics: mean
+using Functors
 
 import GraphNeuralNetworks: propagate, apply_edges
 import Lux: initialparameters, parameterlength, statelength, Chain, applychain,
