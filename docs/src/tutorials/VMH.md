@@ -7,7 +7,7 @@ We will use [`VMHConv`](@ref) to learn the dynamics of the convection-diffusion 
 \frac{\partial u(x, y, t)}{\partial t}=0.25 \nabla^{2} u(x, y, t)-\mathbf{v} \cdot \nabla u(x, y, t).
 ```
 
-Specifically, we will learn the operator from the inital condition to the whole solution on the given temporal and spatial domain.
+Specifically, we will learn the operator from the inital condition to the solution on the given temporal and spatial domain.
 
 ## Load the packages
 
