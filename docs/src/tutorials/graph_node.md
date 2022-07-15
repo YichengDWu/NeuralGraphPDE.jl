@@ -6,7 +6,6 @@ This tutorial is adapted from [SciMLSensitivity](https://sensitivity.sciml.ai/de
 
 ```@example gnode
 using GraphNeuralNetworks, NeuralGraphPDE, DifferentialEquations
-import NeuralGraphPDE: initialgraph
 using Lux, NNlib, Optimisers, Zygote, Random, ComponentArrays
 using SciMLSensitivity
 using Statistics: mean
