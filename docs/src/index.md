@@ -55,7 +55,10 @@ st = updategraph(st, g) # put the graph in st
 y, st = model(x, ps, st)
 ```
 
-  - An unified interface for graph level tasks. As pointed out [here](https://discourse.julialang.org/t/using-a-variable-graph-structure-with-neuralode-and-gcnconv/78881), GNNs are difficult to work well with other neural networks when the input graph is changing. This will not be an issue here. You have an unified interface `y, st = model(x, ps, st)`.
+  - An unified interface for graph level tasks. As pointed out [here](https://discourse.julialang.org/t/using-a-variable-graph-structure-with-neuralode-and-gcnconv/78881), GNNs are difficult to work well with other neural networks when the input graph is changing. This will not be an issue here. You have an unified interface `y, st = model(x, ps, st)`. There are several benefits to doing so:
+    1. Each layer can take in different graphs.
+    2. You can modify the graph inside a layer and return it.
+    3. Multigraphs. A layer can take in any number of graphs in `st`.
 
   - Trainable node embeddings and nontrainable features are seperately stored in `x` and `st.graph`.
 
@@ -63,3 +66,4 @@ y, st = model(x, ps, st)
 
  1. We assume all graphs have the same structure.
  2. The input must be a matrix or a named tuple of matrices.
+ 3. 
