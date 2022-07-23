@@ -57,37 +57,7 @@ model = Chain(node, diffeqsol_to_array)</code></pre><pre class="documenter-examp
     layer_1 = NeuralODE(),              # 19_961 parameters
     layer_2 = WrappedFunction(diffeqsol_to_array),
 )         # Total: 19_961 parameters,
-          #        plus 0 states, summarysize 784 bytes.</code></pre><h2 id="Optimiser"><a class="docs-heading-anchor" href="#Optimiser">Optimiser</a><a id="Optimiser-1"></a><a class="docs-heading-anchor-permalink" href="#Optimiser" title="Permalink"></a></h2><p>Since we only have 24 samples, we will use the <code>Rprop</code> optimiser.</p><pre><code class="language-julia hljs">using Optimisers: @.., @lazy, AbstractRule, onevalue
-import Optimisers: init, apply!
-
-struct Rprop{T} &lt;: AbstractRule
-    eta::T
-    ell::Tuple{T, T}
-    gamma::Tuple{T, T}
-end
-
-Rprop(η = 1.0f-3, ℓ = (5.0f-1, 1.2f0), Γ = (1.0f-6, 50.0f0)) = Rprop{typeof(η)}(η, ℓ, Γ)
-
-init(o::Rprop, x::AbstractArray) = (zero(x), onevalue(o.eta, x))
-
-function apply!(o::Rprop, state, x, dx)
-    ℓ, Γ = o.ell, o.gamma
-    g, η = state
-
-    η = broadcast(g, η, dx) do g, η, dx
-        g * dx &gt; 0 ? min(η * ℓ[2], Γ[2]) : g * dx &lt; 0 ? max(η * ℓ[1], Γ[1]) : η
-    end
-
-    g = broadcast(g, dx) do g, dx
-        g * dx &lt; 0 ? zero(dx) : dx
-    end
-
-    dx′ = @lazy η * sign(g)
-
-    return (g, η), dx′
-end
-
-opt = Rprop(1.0f-6, (5.0f-1, 1.2f0), (1.0f-8, 10.0f0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Main.Rprop{Float32}(1.0f-6, (0.5f0, 1.2f0), (1.0f-8, 10.0f0))</code></pre><h2 id="Loss-function"><a class="docs-heading-anchor" href="#Loss-function">Loss function</a><a id="Loss-function-1"></a><a class="docs-heading-anchor-permalink" href="#Loss-function" title="Permalink"></a></h2><p>We will use the <code>mse</code> loss function.</p><pre><code class="language-julia hljs">function loss(x, y, ps, st)
+          #        plus 0 states, summarysize 784 bytes.</code></pre><h2 id="Optimiser"><a class="docs-heading-anchor" href="#Optimiser">Optimiser</a><a id="Optimiser-1"></a><a class="docs-heading-anchor-permalink" href="#Optimiser" title="Permalink"></a></h2><p>Since we only have 24 samples, we will use the <code>Rprop</code> optimiser.</p><pre><code class="language-julia hljs">opt = Rprop(1.0f-6, (5.0f-1, 1.2f0), (1.0f-8, 10.0f0))</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Optimisers.Rprop{Float32}(1.0f-6, (0.5f0, 1.2f0), (1.0f-8, 10.0f0))</code></pre><h2 id="Loss-function"><a class="docs-heading-anchor" href="#Loss-function">Loss function</a><a id="Loss-function-1"></a><a class="docs-heading-anchor-permalink" href="#Loss-function" title="Permalink"></a></h2><p>We will use the <code>mse</code> loss function.</p><pre><code class="language-julia hljs">function loss(x, y, ps, st)
     ŷ, st = model(x, ps, st)
     l = mse(ŷ, y)
     return l
@@ -139,4 +109,4 @@ train()</code></pre><h2 id="Expected-output"><a class="docs-heading-anchor" href
 [ Info: epoch 170 | train loss = 0.0012353633
 [ Info: epoch 180 | train loss = 0.0011409305
 [ Info: epoch 190 | train loss = 0.0010424983
-[ Info: epoch 200 | train loss = 0.0009809926</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../graph_node/">« Neural Graph Ordinary Differential Equations</a><a class="docs-footer-nextpage" href="../../api/layers/">Layers »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.21 on <span class="colophon-date" title="Thursday 21 July 2022 03:29">Thursday 21 July 2022</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+[ Info: epoch 200 | train loss = 0.0009809926</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../graph_node/">« Neural Graph Ordinary Differential Equations</a><a class="docs-footer-nextpage" href="../../api/layers/">Layers »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.21 on <span class="colophon-date" title="Saturday 23 July 2022 04:23">Saturday 23 July 2022</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
