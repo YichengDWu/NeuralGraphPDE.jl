@@ -6,7 +6,7 @@ This tutorial is adapted from [SciMLSensitivity](https://sensitivity.sciml.ai/de
 
 ```@example gnode
 using GraphNeuralNetworks, NeuralGraphPDE, DifferentialEquations
-using Lux, NNlib, Optimisers, Zygote, Random, 
+using Lux, NNlib, Optimisers, Zygote, Random
 using ComponentArrays, OneHotArrays
 using SciMLSensitivity
 using Statistics: mean
