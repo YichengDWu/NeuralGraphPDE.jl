@@ -6,7 +6,8 @@ This tutorial is adapted from [SciMLSensitivity](https://sensitivity.sciml.ai/de
 
 ```@example gnode
 using GraphNeuralNetworks, NeuralGraphPDE, DifferentialEquations
-using Lux, NNlib, Optimisers, Zygote, Random, ComponentArrays
+using Lux, NNlib, Optimisers, Zygote, Random
+using ComponentArrays, OneHotArrays
 using SciMLSensitivity
 using Statistics: mean
 using MLDatasets: Cora
@@ -18,9 +19,6 @@ device = CUDA.functional() ? gpu : cpu
 ## Load data
 
 ```@example gnode
-onehotbatch(data, labels) = device(labels) .== reshape(data, 1, size(data)...)
-onecold(y) = map(argmax, eachcol(y))
-
 dataset = Cora();
 classes = dataset.metadata["classes"]
 g = device(mldataset2gnngraph(dataset))
