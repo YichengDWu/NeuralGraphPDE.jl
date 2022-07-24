@@ -32,11 +32,9 @@ epochs = 40</code></pre><pre class="documenter-example-output"><code class="nohi
     kwargs::K
 end
 
-function NeuralODE(model::Lux.AbstractExplicitLayer;
-                   solver = Tsit5(),
-                   sensealg = InterpolatingAdjoint(; autojacvec = ZygoteVJP()),
-                   tspan = (0.0f0, 1.0f0),
-                   kwargs...)
+function NeuralODE(model::Lux.AbstractExplicitLayer; solver=Tsit5(),
+                   sensealg=InterpolatingAdjoint(; autojacvec=ZygoteVJP()),
+                   tspan=(0.0f0, 1.0f0), kwargs...)
     return NeuralODE(model, solver, sensealg, tspan, kwargs)
 end
 
@@ -46,23 +44,20 @@ function (n::NeuralODE)(x, ps, st)
         return u_
     end
     prob = ODEProblem{false}(ODEFunction{false}(dudt), x, n.tspan, ps)
-    return solve(prob, n.solver; sensealg = n.sensealg, n.kwargs...), st
+    return solve(prob, n.solver; sensealg=n.sensealg, n.kwargs...), st
 end
 
 function diffeqsol_to_array(x::ODESolution{T, N, &lt;:AbstractVector{&lt;:CuArray}}) where {T, N}
-    return dropdims(gpu(x); dims = 3)
+    return dropdims(gpu(x); dims=3)
 end
-diffeqsol_to_array(x::ODESolution) = dropdims(Array(x); dims = 3)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">diffeqsol_to_array (generic function with 2 methods)</code></pre><h2 id="Create-and-initialize-the-Neural-Graph-ODE-layer"><a class="docs-heading-anchor" href="#Create-and-initialize-the-Neural-Graph-ODE-layer">Create and initialize the Neural Graph ODE layer</a><a id="Create-and-initialize-the-Neural-Graph-ODE-layer-1"></a><a class="docs-heading-anchor-permalink" href="#Create-and-initialize-the-Neural-Graph-ODE-layer" title="Permalink"></a></h2><pre><code class="language-julia hljs">function create_model()
+diffeqsol_to_array(x::ODESolution) = dropdims(Array(x); dims=3)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">diffeqsol_to_array (generic function with 2 methods)</code></pre><h2 id="Create-and-initialize-the-Neural-Graph-ODE-layer"><a class="docs-heading-anchor" href="#Create-and-initialize-the-Neural-Graph-ODE-layer">Create and initialize the Neural Graph ODE layer</a><a id="Create-and-initialize-the-Neural-Graph-ODE-layer-1"></a><a class="docs-heading-anchor-permalink" href="#Create-and-initialize-the-Neural-Graph-ODE-layer" title="Permalink"></a></h2><pre><code class="language-julia hljs">function create_model()
     node_chain = Chain(ExplicitGCNConv(nhidden =&gt; nhidden, relu),
                        ExplicitGCNConv(nhidden =&gt; nhidden, relu))
 
-    node = NeuralODE(node_chain,
-                     save_everystep = false,
-                     reltol = 1e-3, abstol = 1e-3, save_start = false)
+    node = NeuralODE(node_chain; save_everystep=false, reltol=1e-3, abstol=1e-3,
+                     save_start=false)
 
-    model = Chain(ExplicitGCNConv(nin =&gt; nhidden, relu),
-                  node,
-                  diffeqsol_to_array,
+    model = Chain(ExplicitGCNConv(nin =&gt; nhidden, relu), node, diffeqsol_to_array,
                   Dense(nhidden, nout))
 
     rng = Random.default_rng()
@@ -73,7 +68,7 @@ diffeqsol_to_array(x::ODESolution) = dropdims(Array(x); dims = 3)</code></pre><p
     st = updategraph(st, g) |&gt; device
 
     return model, ps, st
-end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">create_model (generic function with 1 method)</code></pre><h2 id="Define-the-loss-function"><a class="docs-heading-anchor" href="#Define-the-loss-function">Define the loss function</a><a id="Define-the-loss-function-1"></a><a class="docs-heading-anchor-permalink" href="#Define-the-loss-function" title="Permalink"></a></h2><pre><code class="language-julia hljs">logitcrossentropy(ŷ, y) = mean(-sum(y .* logsoftmax(ŷ); dims = 1))
+end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">create_model (generic function with 1 method)</code></pre><h2 id="Define-the-loss-function"><a class="docs-heading-anchor" href="#Define-the-loss-function">Define the loss function</a><a id="Define-the-loss-function-1"></a><a class="docs-heading-anchor-permalink" href="#Define-the-loss-function" title="Permalink"></a></h2><pre><code class="language-julia hljs">logitcrossentropy(ŷ, y) = mean(-sum(y .* logsoftmax(ŷ); dims=1))
 
 function loss(x, y, mask, model, ps, st)
     ŷ, st = model(x, ps, st)
@@ -84,7 +79,7 @@ function eval_loss_accuracy(X, y, mask, model, ps, st)
     ŷ, _ = model(X, ps, st)
     l = logitcrossentropy(ŷ[:, mask], y[:, mask])
     acc = mean(onecold(ŷ[:, mask]) .== onecold(y[:, mask]))
-    return (loss = round(l, digits = 4), acc = round(acc * 100, digits = 2))
+    return (loss=round(l; digits=4), acc=round(acc * 100; digits=2))
 end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">eval_loss_accuracy (generic function with 1 method)</code></pre><h2 id="Train-the-model"><a class="docs-heading-anchor" href="#Train-the-model">Train the model</a><a id="Train-the-model-1"></a><a class="docs-heading-anchor-permalink" href="#Train-the-model" title="Permalink"></a></h2><pre><code class="language-julia hljs">function train()
     model, ps, st = create_model()
 
@@ -122,22 +117,22 @@ eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 0.9797f0, acc = 75.6
 eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 0.9939f0, acc = 75.6)
 eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.0204f0, acc = 75.6)
 eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.0755f0, acc = 75.6)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.1425f0, acc = 75.4)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.1424f0, acc = 75.4)
 eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.1981f0, acc = 75.2)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.2332f0, acc = 75.2)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.2645f0, acc = 75.2)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.3109f0, acc = 74.6)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.378f0, acc = 74.4)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.4573f0, acc = 74.4)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.5344f0, acc = 74.4)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.5971f0, acc = 74.0)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.6393f0, acc = 73.8)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.6661f0, acc = 74.2)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.6884f0, acc = 74.6)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.718f0, acc = 74.6)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.7618f0, acc = 74.6)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.8184f0, acc = 74.4)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.8805f0, acc = 74.4)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.9409f0, acc = 74.6)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.9922f0, acc = 74.2)
-eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 2.0291f0, acc = 74.2)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../">« Home</a><a class="docs-footer-nextpage" href="../VMH/">Neural Graph Partial Differential Equations »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.21 on <span class="colophon-date" title="Saturday 23 July 2022 23:24">Saturday 23 July 2022</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.2333f0, acc = 75.2)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.2649f0, acc = 75.2)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.3113f0, acc = 74.6)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.3783f0, acc = 74.4)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.457f0, acc = 74.6)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.534f0, acc = 74.4)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.596f0, acc = 74.0)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.6389f0, acc = 73.8)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.6663f0, acc = 74.2)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.6894f0, acc = 74.4)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.7196f0, acc = 74.6)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.7632f0, acc = 74.8)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.8192f0, acc = 74.2)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.8807f0, acc = 74.4)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.9402f0, acc = 74.6)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 1.9906f0, acc = 74.2)
+eval_loss_accuracy(X, y, val_mask, model, ps, st) = (loss = 2.0275f0, acc = 74.2)</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../../">« Home</a><a class="docs-footer-nextpage" href="../VMH/">Neural Graph Partial Differential Equations »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.21 on <span class="colophon-date" title="Sunday 24 July 2022 00:53">Sunday 24 July 2022</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

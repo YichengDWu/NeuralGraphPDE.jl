@@ -8,13 +8,13 @@ using Flux.Losses: mse
 import Lux: initialparameters, initialstates
 using NNlib
 using DiffEqFlux: NeuralODE</code></pre><h2 id="Load-data"><a class="docs-heading-anchor" href="#Load-data">Load data</a><a id="Load-data-1"></a><a class="docs-heading-anchor-permalink" href="#Load-data" title="Permalink"></a></h2><pre><code class="language-julia hljs">function register_convdiff()
-    register(DataDep(&quot;Convection_Diffusion_Equation&quot;,
-                     &quot;&quot;&quot;
-                     Convection-Diffusion equation dataset from
-                     [Learning continuous-time PDEs from sparse data with graph neural networks](https://github.com/yakovlev31/graphpdes_experiments)
-                     &quot;&quot;&quot;,
-                     &quot;https://drive.google.com/file/d/1oyatNeLizoO5co2ZVXIwZmWjJ046E9j6/view?usp=sharing&quot;,
-                     fetch_method = gdownload))
+    return register(DataDep(&quot;Convection_Diffusion_Equation&quot;,
+                            &quot;&quot;&quot;
+                            Convection-Diffusion equation dataset from
+                            [Learning continuous-time PDEs from sparse data with graph neural networks](https://github.com/yakovlev31/graphpdes_experiments)
+                            &quot;&quot;&quot;,
+                            &quot;https://drive.google.com/file/d/1oyatNeLizoO5co2ZVXIwZmWjJ046E9j6/view?usp=sharing&quot;;
+                            fetch_method=gdownload))
 end
 
 register_convdiff()
@@ -39,19 +39,15 @@ act = tanh
 nhidden = 60
 nout = 40
 
-ϕ = Chain(Dense(4 =&gt; nhidden, act),
-          Dense(nhidden =&gt; nhidden, act),
-          Dense(nhidden =&gt; nhidden, act),
-          Dense(nhidden =&gt; nout))
+ϕ = Chain(Dense(4 =&gt; nhidden, act), Dense(nhidden =&gt; nhidden, act),
+          Dense(nhidden =&gt; nhidden, act), Dense(nhidden =&gt; nout))
 
-γ = Chain(Dense(nout + 1 =&gt; nhidden, act),
-          Dense(nhidden =&gt; nhidden, act),
-          Dense(nhidden =&gt; nhidden, act),
-          Dense(nhidden =&gt; 1))
+γ = Chain(Dense(nout + 1 =&gt; nhidden, act), Dense(nhidden =&gt; nhidden, act),
+          Dense(nhidden =&gt; nhidden, act), Dense(nhidden =&gt; 1))
 
 gnn = VMHConv(ϕ, γ)
 
-node = NeuralODE(gnn, tspan_train, Tsit5(), saveat = dt_train, reltol = 1e-9, abstol = 1e-3)
+node = NeuralODE(gnn, tspan_train, Tsit5(); saveat=dt_train, reltol=1e-9, abstol=1e-3)
 
 model = Chain(node, diffeqsol_to_array)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Chain(
     layer_1 = NeuralODE(),              # 19_961 parameters
@@ -62,7 +58,7 @@ model = Chain(node, diffeqsol_to_array)</code></pre><pre class="documenter-examp
     l = mse(ŷ, y)
     return l
 end</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">loss (generic function with 1 method)</code></pre><h2 id="Train-the-model"><a class="docs-heading-anchor" href="#Train-the-model">Train the model</a><a id="Train-the-model-1"></a><a class="docs-heading-anchor-permalink" href="#Train-the-model" title="Permalink"></a></h2><p>The solution data has the shape <code>(space_points , time_points, num_samples)</code>. We will first permute the last two dimensions, resulting in the shape <code>(space_points , num_samples, time_points)</code>. Then we flatten the first two dimensions, <code>(1, space_points * num_samples, time_points)</code>, and use the initial condition as the input to the model. The output of the model will be of size <code>(1, space_points * time_points, num_samples)</code>.</p><pre><code class="language-julia hljs">mydevice = CUDA.functional() ? gpu : cpu
-train_loader = DataLoader(train_data, batchsize = 24, shuffle = true)
+train_loader = DataLoader(train_data; batchsize=24, shuffle=true)
 
 rng = Random.default_rng()
 Random.seed!(rng, 0)
@@ -109,4 +105,4 @@ train()</code></pre><h2 id="Expected-output"><a class="docs-heading-anchor" href
 [ Info: epoch 170 | train loss = 0.0012353633
 [ Info: epoch 180 | train loss = 0.0011409305
 [ Info: epoch 190 | train loss = 0.0010424983
-[ Info: epoch 200 | train loss = 0.0009809926</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../graph_node/">« Neural Graph Ordinary Differential Equations</a><a class="docs-footer-nextpage" href="../../api/layers/">Layers »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.21 on <span class="colophon-date" title="Saturday 23 July 2022 23:24">Saturday 23 July 2022</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+[ Info: epoch 200 | train loss = 0.0009809926</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../graph_node/">« Neural Graph Ordinary Differential Equations</a><a class="docs-footer-nextpage" href="../../api/layers/">Layers »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.21 on <span class="colophon-date" title="Sunday 24 July 2022 00:53">Sunday 24 July 2022</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

@@ -3,7 +3,7 @@
     initialgraph::Function
     ...
 end</code></pre><p>Step 2. Define <code>initialparameters</code> as in <code>Lux</code>. The default <code>initialstates</code> returns <code>(graph = GNNGraph(...))</code>, so this is optional. If you want to put more things in <code>st</code> then you need to overload <code>initialstates</code> as well.</p><pre><code class="language-julia hljs">function initialstates(rng::AbstractRNG, l::AbstractGNNLayer)
-    (graph = l.initialgraph(), otherstates)
+    return (graph=l.initialgraph(), otherstates)
 end</code></pre><p>In this case, it is recommended to also overload <code>statelength</code>, it should be like</p><pre><code class="language-julia hljs">statelength(l::AbstractGNNLayer) = 1 + length(otherstates) # 1 for the graph</code></pre><p>Step 3. Define the constructor(s) that has the keyword argument <code>initialgraph=initialgraph</code>.</p><pre><code class="nohighlight hljs">function MyGNNLayer(...; initialgraph=initialgraph)
   initalgraph = wrapgraph(initialgraph) # always wrap initialgraph so the input can be a graph or a function
   MyGNNLayer{...}(initialgraph,...)
@@ -21,7 +21,7 @@ end</code></pre><h2 id="AbstractGNNContainerLayer"><a class="docs-heading-anchor
         m, st.nn = nn(..., st.nn)
         st = merge(st, (nn = st_nn,))
         return m
-end</code></pre><p>Note that if you have only one neural layer insider a <code>AbstractGNNContainerLayer</code>, then the parameters will be reduced but not the states.</p><pre><code class="language-julia hljs">julia&gt; l = ExplicitEdgeConv(nn, initialgraph = g)
+end</code></pre><p>Note that if you have only one neural layer insider a <code>AbstractGNNContainerLayer</code>, then the parameters will be reduced but not the states.</p><pre><code class="language-julia hljs">julia&gt; l = ExplicitEdgeConv(nn; initialgraph=g)
 
 julia&gt; rng = Random.default_rng()
 
@@ -31,4 +31,4 @@ julia&gt; ps
 (weight = Float32[0.22180015 -0.09448394 … -0.41880473 -0.49083555; -0.23709725 0.05150031 … 0.48641983 0.14893274; … ; 0.42824164 0.5589718 … -0.5763395 0.18395355; 0.25994122 0.22801241 … 0.59201854 0.3832495], bias = Float32[0.0; 0.0; … ; 0.0; 0.0;;])
 
 julia&gt; st
-(ϕ = NamedTuple(), graph = GNNGraph(3, 4))</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../api/utilities/">« Utilities</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.21 on <span class="colophon-date" title="Saturday 23 July 2022 23:24">Saturday 23 July 2022</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+(ϕ = NamedTuple(), graph = GNNGraph(3, 4))</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../api/utilities/">« Utilities</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.21 on <span class="colophon-date" title="Sunday 24 July 2022 00:53">Sunday 24 July 2022</span>. Using Julia version 1.7.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
