@@ -19,7 +19,7 @@ Step 2. Define `initialparameters` as in `Lux`. The default `initialstates` retu
 
 ```julia
 function initialstates(rng::AbstractRNG, l::AbstractGNNLayer)
-    (graph = l.initialgraph(), otherstates)
+    return (graph=l.initialgraph(), otherstates)
 end
 ```
 
@@ -74,7 +74,7 @@ end
 Note that if you have only one neural layer insider a `AbstractGNNContainerLayer`, then the parameters will be reduced but not the states.
 
 ```julia
-julia> l = ExplicitEdgeConv(nn, initialgraph = g)
+julia> l = ExplicitEdgeConv(nn; initialgraph=g)
 
 julia> rng = Random.default_rng()
 

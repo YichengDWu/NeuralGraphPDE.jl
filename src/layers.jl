@@ -15,17 +15,18 @@ const EMPTYGRAPH = rand_graph(0, 0)
 
 """
     initialgraph() = EMPTYGRAPH
+
 THe default graph initializer for a GNN layer. Return an empty graph.
 """
 initialgraph() = EMPTYGRAPH
 
-initialstates(rng::AbstractRNG, l::AbstractGNNLayer) = (graph = l.initialgraph(),)
+initialstates(rng::AbstractRNG, l::AbstractGNNLayer) = (graph=l.initialgraph(),)
 statelength(l::AbstractGNNLayer) = 1 #default
 
 function initialstates(rng::AbstractRNG,
                        l::AbstractGNNContainerLayer{layers}) where {layers}
     return merge(NamedTuple{layers}(initialstates.(rng, getfield.((l,), layers))),
-                 (graph = l.initialgraph(),))
+                 (graph=l.initialgraph(),))
 end
 
 function statelength(l::AbstractGNNContainerLayer{layers}) where {layers}
@@ -80,20 +81,18 @@ ps, st = Lux.setup(rng, l)
 ```
 
 """
-struct ExplicitEdgeConv{M} <:
-       AbstractGNNContainerLayer{(:ϕ,)}
+struct ExplicitEdgeConv{M} <: AbstractGNNContainerLayer{(:ϕ,)}
     initialgraph::Function
     ϕ::M
     aggr::Function
 end
 
-function ExplicitEdgeConv(ϕ::AbstractExplicitLayer; initialgraph = initialgraph,
-                          aggr = mean)
-    ExplicitEdgeConv{typeof(ϕ)}(wrapgraph(initialgraph), ϕ, aggr)
+function ExplicitEdgeConv(ϕ::AbstractExplicitLayer; initialgraph=initialgraph, aggr=mean)
+    return ExplicitEdgeConv{typeof(ϕ)}(wrapgraph(initialgraph), ϕ, aggr)
 end
 
 function (l::ExplicitEdgeConv)(x::AbstractArray, ps, st::NamedTuple)
-    return l((; preservedname = x), ps, st)
+    return l((; preservedname=x), ps, st)
 end
 
 function (l::ExplicitEdgeConv)(x::NamedTuple, ps, st::NamedTuple)
@@ -105,11 +104,11 @@ function (l::ExplicitEdgeConv)(x::NamedTuple, ps, st::NamedTuple)
         posi, posj = xi.x, xj.x
         hi, hj = drop(xi, :x), drop(xj, :x)
         m, st_ϕ = l.ϕ(vcat(values(hi)..., values(hj)..., posj .- posi), ps, st.ϕ)
-        st = merge(st, (ϕ = st_ϕ,))
+        st = merge(st, (ϕ=st_ϕ,))
         return m
     end
     xs = merge(x, s)
-    return propagate(message, g, l.aggr, xi = xs, xj = xs), st
+    return propagate(message, g, l.aggr; xi=xs, xj=xs), st
 end
 
 @doc raw"""
@@ -164,10 +163,10 @@ end
 
 function initialparameters(rng::AbstractRNG, d::ExplicitGCNConv{bias}) where {bias}
     if bias
-        return (weight = d.init_weight(rng, d.out_chs, d.in_chs),
-                bias = d.init_bias(rng, d.out_chs, 1))
+        return (weight=d.init_weight(rng, d.out_chs, d.in_chs),
+                bias=d.init_bias(rng, d.out_chs, 1))
     else
-        return (weight = d.init_weight(rng, d.out_chs, d.in_chs),)
+        return (weight=d.init_weight(rng, d.out_chs, d.in_chs),)
     end
 end
 
@@ -175,34 +174,30 @@ function parameterlength(d::ExplicitGCNConv{bias}) where {bias}
     return bias ? d.out_chs * (d.in_chs + 1) : d.out_chs * d.in_chs
 end
 
-function ExplicitGCNConv(in_chs::Int, out_chs::Int, activation = identity;
-                         initialgraph = initialgraph, init_weight = glorot_normal,
-                         init_bias = zeros32,
-                         bias::Bool = true, add_self_loops::Bool = true,
-                         use_edge_weight::Bool = false)
+function ExplicitGCNConv(in_chs::Int, out_chs::Int, activation=identity;
+                         initialgraph=initialgraph, init_weight=glorot_normal,
+                         init_bias=zeros32, bias::Bool=true, add_self_loops::Bool=true,
+                         use_edge_weight::Bool=false)
     activation = NNlib.fast_act(activation)
     initialgraph = wrapgraph(initialgraph)
-    return ExplicitGCNConv{bias, typeof(activation),
-                           typeof(init_weight), typeof(init_bias)
-                           }(initialgraph, in_chs, out_chs, activation,
-                             init_weight, init_bias,
-                             add_self_loops, use_edge_weight)
+    return ExplicitGCNConv{bias, typeof(activation), typeof(init_weight), typeof(init_bias)
+                           }(initialgraph, in_chs, out_chs, activation, init_weight,
+                             init_bias, add_self_loops, use_edge_weight)
 end
 
-function ExplicitGCNConv(ch::Pair{Int, Int}, activation = identity;
-                         initialgraph = initialgraph, init_weight = glorot_uniform,
-                         init_bias = zeros32,
-                         bias::Bool = true, add_self_loops = true, use_edge_weight = false)
-    return ExplicitGCNConv(first(ch), last(ch), activation,
-                           initialgraph = initialgraph, init_weight = init_weight,
-                           init_bias = init_bias,
-                           bias = bias, add_self_loops = add_self_loops,
-                           use_edge_weight = use_edge_weight)
+function ExplicitGCNConv(ch::Pair{Int, Int}, activation=identity; initialgraph=initialgraph,
+                         init_weight=glorot_uniform, init_bias=zeros32, bias::Bool=true,
+                         add_self_loops=true, use_edge_weight=false)
+    return ExplicitGCNConv(first(ch), last(ch), activation; initialgraph=initialgraph,
+                           init_weight=init_weight, init_bias=init_bias, bias=bias,
+                           add_self_loops=add_self_loops, use_edge_weight=use_edge_weight)
 end
 
 function (l::ExplicitGCNConv)(x::AbstractMatrix{T}, ps, st::NamedTuple,
-                              edge_weight::EW = nothing) where
-    {T, EW <: Union{Nothing, AbstractVector}}
+                              edge_weight::EW=nothing) where {T,
+                                                              EW <:
+                                                              Union{Nothing, AbstractVector
+                                                                    }}
     g = st.graph
     @assert !(g isa GNNGraph{<:ADJMAT_T} && edge_weight !== nothing) "Providing external edge_weight is not yet supported for adjacency matrix graphs"
 
@@ -224,15 +219,15 @@ function (l::ExplicitGCNConv)(x::AbstractMatrix{T}, ps, st::NamedTuple,
         # multiply before convolution if it is more convenient, otherwise multiply after
         x = ps.weight * x
     end
-    d = degree(g, T; dir = :in, edge_weight)
+    d = degree(g, T; dir=:in, edge_weight)
     c = 1 ./ sqrt.(d)
     x = x .* c'
     if edge_weight !== nothing
-        x = propagate(e_mul_xj, g, +, xj = x, e = edge_weight)
+        x = propagate(e_mul_xj, g, +; xj=x, e=edge_weight)
     elseif l.use_edge_weight
-        x = propagate(w_mul_xj, g, +, xj = x)
+        x = propagate(w_mul_xj, g, +; xj=x)
     else
-        x = propagate(copy_xj, g, +, xj = x)
+        x = propagate(copy_xj, g, +; xj=x)
     end
     x = x .* c'
     if Dout >= Din
@@ -303,14 +298,13 @@ struct VMHConv{M1, M2, A} <: AbstractGNNContainerLayer{(:ϕ, :γ)}
 end
 
 function VMHConv(ϕ::AbstractExplicitLayer, γ::AbstractExplicitLayer;
-                 initialgraph = initialgraph, aggr = mean)
+                 initialgraph=initialgraph, aggr=mean)
     initialgraph = wrapgraph(initialgraph)
-    VMHConv{typeof(ϕ), typeof(γ), typeof(aggr)}(initialgraph, ϕ, γ,
-                                                aggr)
+    return VMHConv{typeof(ϕ), typeof(γ), typeof(aggr)}(initialgraph, ϕ, γ, aggr)
 end
 
 function (l::VMHConv)(x::AbstractArray, ps, st::NamedTuple)
-    return l((; preservedname = x), ps, st)
+    return l((; preservedname=x), ps, st)
 end
 
 function (l::VMHConv)(x::NamedTuple, ps, st::NamedTuple)
@@ -318,7 +312,7 @@ function (l::VMHConv)(x::NamedTuple, ps, st::NamedTuple)
         posi, posj = xi.x, xj.x
         hi, hj = values(drop(xi, :x)), values(drop(xj, :x))
         m, st_ϕ = l.ϕ(vcat(hi..., (hj .- hi)..., posj .- posi), ps.ϕ, st.ϕ)
-        st = merge(st, (; ϕ = st_ϕ))
+        st = merge(st, (; ϕ=st_ϕ))
         return m
     end
 
@@ -327,10 +321,10 @@ function (l::VMHConv)(x::NamedTuple, ps, st::NamedTuple)
 
     xs = merge(x, s)
 
-    m = propagate(message, g, l.aggr, xi = xs, xj = xs)
+    m = propagate(message, g, l.aggr; xi=xs, xj=xs)
 
     y, st_γ = l.γ(vcat(values(x)..., m), ps.γ, st.γ)
-    st = merge(st, (; γ = st_γ))
+    st = merge(st, (; γ=st_γ))
 
     return y, st
 end
@@ -385,11 +379,10 @@ struct MPPDEConv{A, M1, M2} <: AbstractGNNContainerLayer{(:ϕ, :ψ)}
     aggr::A
 end
 
-function MPPDEConv(ϕ::AbstractExplicitLayer, ψ::AbstractExplicitLayer;
-                   aggr = mean,
-                   initialgraph = initialgraph)
+function MPPDEConv(ϕ::AbstractExplicitLayer, ψ::AbstractExplicitLayer; aggr=mean,
+                   initialgraph=initialgraph)
     initialgraph = wrapgraph(initialgraph)
-    MPPDEConv{typeof(aggr), typeof(ϕ), typeof(ψ)}(initialgraph, ϕ, ψ, aggr)
+    return MPPDEConv{typeof(aggr), typeof(ϕ), typeof(ψ)}(initialgraph, ϕ, ψ, aggr)
 end
 
 function (l::MPPDEConv)(x::AbstractArray, ps, st::NamedTuple)
@@ -399,29 +392,29 @@ function (l::MPPDEConv)(x::AbstractArray, ps, st::NamedTuple)
     num_graphs = g.num_graphs
     s = g.ndata
     e = g.edata
-    θ = reduce(vcat, values(st.graph.gdata), init = similar(x, 0, num_graphs))
+    θ = reduce(vcat, values(st.graph.gdata); init=similar(x, 0, num_graphs))
 
     nkeys = keys(s)
     initarray = similar(x, 0, num_edges)
 
     function message(xi, xj, e)
         di, dj = xi[nkeys], xj[nkeys]
-        di, dj = reduce(vcat, values(di), init = initarray),
-                 reduce(vcat, values(dj), init = initarray)
+        di, dj = reduce(vcat, values(di); init=initarray),
+                 reduce(vcat, values(dj); init=initarray)
 
-        e = reduce(vcat, values(e), init = initarray)
+        e = reduce(vcat, values(e); init=initarray)
         hi, hj = xi.preservedname, xj.preservedname
         m, st_ϕ = l.ϕ(vcat(hi, hj, di .- dj, e,
-                           repeat(θ, inner = (1, num_edges ÷ num_graphs))), ps.ϕ, st.ϕ)
-        st = merge(st, (; ϕ = st_ϕ))
+                           repeat(θ; inner=(1, num_edges ÷ num_graphs))), ps.ϕ, st.ϕ)
+        st = merge(st, (; ϕ=st_ϕ))
         return m
     end
 
-    xs = merge((; preservedname = x), s)
-    m = propagate(message, g, l.aggr, xi = xs, xj = xs, e = e)
+    xs = merge((; preservedname=x), s)
+    m = propagate(message, g, l.aggr; xi=xs, xj=xs, e=e)
 
-    y, st_ψ = l.ψ(vcat(x, m, repeat(θ, inner = (1, num_nodes ÷ num_graphs))), ps.ψ, st.ψ)
-    st = merge(st, (; ψ = st_ψ))
+    y, st_ψ = l.ψ(vcat(x, m, repeat(θ; inner=(1, num_nodes ÷ num_graphs))), ps.ψ, st.ψ)
+    st = merge(st, (; ψ=st_ψ))
 
     return y, st
 end
@@ -496,29 +489,19 @@ struct GNOConv{bias, A} <: AbstractGNNContainerLayer{(:linear, :ϕ)}
     ϕ::AbstractExplicitLayer
 end
 
-function GNOConv(in_chs::Int, out_chs::Int, ϕ::AbstractExplicitLayer, activation = identity;
-                 initialgraph = initialgraph,
-                 init_weight = glorot_uniform,
-                 init_bias = zeros32,
-                 aggr = mean,
-                 bias::Bool = true)
-    GNOConv(in_chs => out_chs, ϕ, activation,
-            initialgraph = initialgraph, init_weight = init_weight, init_bias = init_bias,
-            aggr = aggr, bias = bias)
+function GNOConv(in_chs::Int, out_chs::Int, ϕ::AbstractExplicitLayer, activation=identity;
+                 initialgraph=initialgraph, init_weight=glorot_uniform, init_bias=zeros32,
+                 aggr=mean, bias::Bool=true)
+    return GNOConv(in_chs => out_chs, ϕ, activation; initialgraph=initialgraph,
+                   init_weight=init_weight, init_bias=init_bias, aggr=aggr, bias=bias)
 end
 
-function GNOConv(ch::Pair{Int, Int}, ϕ::AbstractExplicitLayer, activation = identity;
-                 initialgraph = initialgraph,
-                 init_weight = glorot_uniform,
-                 init_bias = zeros32,
-                 aggr = mean,
-                 bias::Bool = true)
+function GNOConv(ch::Pair{Int, Int}, ϕ::AbstractExplicitLayer, activation=identity;
+                 initialgraph=initialgraph, init_weight=glorot_uniform, init_bias=zeros32,
+                 aggr=mean, bias::Bool=true)
     initialgraph = wrapgraph(initialgraph)
-    linear = Dense(ch, activation,
-                   init_weight = init_weight,
-                   init_bias = init_bias,
-                   bias = bias)
-    GNOConv{bias, typeof(aggr)}(first(ch), last(ch), initialgraph, aggr, linear, ϕ)
+    linear = Dense(ch, activation; init_weight=init_weight, init_bias=init_bias, bias=bias)
+    return GNOConv{bias, typeof(aggr)}(first(ch), last(ch), initialgraph, aggr, linear, ϕ)
 end
 
 function (l::GNOConv{bias})(x::AbstractArray, ps, st::NamedTuple) where {bias}
@@ -530,13 +513,13 @@ function (l::GNOConv{bias})(x::AbstractArray, ps, st::NamedTuple) where {bias}
 
     function message(xi, xj, e)
         si, sj = xi[nkeys], xj[nkeys]
-        si, sj = reduce(vcat, values(si), init = initarray),
-                 reduce(vcat, values(sj), init = initarray)
+        si, sj = reduce(vcat, values(si); init=initarray),
+                 reduce(vcat, values(sj); init=initarray)
 
-        e = reduce(vcat, values(e), init = initarray)
+        e = reduce(vcat, values(e); init=initarray)
 
         W, st_ϕ = l.ϕ(vcat(si, sj, e), ps.ϕ, st.ϕ)
-        st = merge(st, (; ϕ = st_ϕ))
+        st = merge(st, (; ϕ=st_ϕ))
 
         hj = xj.h_
         W = reshape(W, :, l.in_chs, num_edges)
@@ -545,8 +528,8 @@ function (l::GNOConv{bias})(x::AbstractArray, ps, st::NamedTuple) where {bias}
         return reshape(m, :, num_edges)
     end
 
-    xs = merge((; h_ = x), s)
-    m = propagate(message, g, l.aggr, xi = xs, xj = xs, e = g.edata)
+    xs = merge((; h_=x), s)
+    m = propagate(message, g, l.aggr; xi=xs, xj=xs, e=g.edata)
 
     y = applyactivation(l.linear.activation, _linearmap(x, m, ps.linear, Val(bias)))
 
@@ -554,9 +537,9 @@ function (l::GNOConv{bias})(x::AbstractArray, ps, st::NamedTuple) where {bias}
 end
 
 @inline function _linearmap(x::AbstractMatrix, m::AbstractMatrix, ps, ::Val{true})
-    elementwise_add(elementwise_add(ps.weight * x, m), ps.bias)
+    return elementwise_add(elementwise_add(ps.weight * x, m), ps.bias)
 end
 
 @inline function _linearmap(x::AbstractMatrix, m::AbstractMatrix, ps, ::Val{false})
-    elementwise_add(ps.weight * x, m)
+    return elementwise_add(ps.weight * x, m)
 end

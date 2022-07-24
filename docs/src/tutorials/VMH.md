@@ -27,13 +27,13 @@ using DiffEqFlux: NeuralODE
 
 ```@example ngpde
 function register_convdiff()
-    register(DataDep("Convection_Diffusion_Equation",
-                     """
-                     Convection-Diffusion equation dataset from
-                     [Learning continuous-time PDEs from sparse data with graph neural networks](https://github.com/yakovlev31/graphpdes_experiments)
-                     """,
-                     "https://drive.google.com/file/d/1oyatNeLizoO5co2ZVXIwZmWjJ046E9j6/view?usp=sharing",
-                     fetch_method = gdownload))
+    return register(DataDep("Convection_Diffusion_Equation",
+                            """
+                            Convection-Diffusion equation dataset from
+                            [Learning continuous-time PDEs from sparse data with graph neural networks](https://github.com/yakovlev31/graphpdes_experiments)
+                            """,
+                            "https://drive.google.com/file/d/1oyatNeLizoO5co2ZVXIwZmWjJ046E9j6/view?usp=sharing";
+                            fetch_method=gdownload))
 end
 
 register_convdiff()
@@ -76,19 +76,15 @@ act = tanh
 nhidden = 60
 nout = 40
 
-ϕ = Chain(Dense(4 => nhidden, act),
-          Dense(nhidden => nhidden, act),
-          Dense(nhidden => nhidden, act),
-          Dense(nhidden => nout))
+ϕ = Chain(Dense(4 => nhidden, act), Dense(nhidden => nhidden, act),
+          Dense(nhidden => nhidden, act), Dense(nhidden => nout))
 
-γ = Chain(Dense(nout + 1 => nhidden, act),
-          Dense(nhidden => nhidden, act),
-          Dense(nhidden => nhidden, act),
-          Dense(nhidden => 1))
+γ = Chain(Dense(nout + 1 => nhidden, act), Dense(nhidden => nhidden, act),
+          Dense(nhidden => nhidden, act), Dense(nhidden => 1))
 
 gnn = VMHConv(ϕ, γ)
 
-node = NeuralODE(gnn, tspan_train, Tsit5(), saveat = dt_train, reltol = 1e-9, abstol = 1e-3)
+node = NeuralODE(gnn, tspan_train, Tsit5(); saveat=dt_train, reltol=1e-9, abstol=1e-3)
 
 model = Chain(node, diffeqsol_to_array)
 ```
@@ -121,7 +117,7 @@ The output of the model will be of size `(1, space_points * time_points, num_sam
 
 ```julia
 mydevice = CUDA.functional() ? gpu : cpu
-train_loader = DataLoader(train_data, batchsize = 24, shuffle = true)
+train_loader = DataLoader(train_data; batchsize=24, shuffle=true)
 
 rng = Random.default_rng()
 Random.seed!(rng, 0)

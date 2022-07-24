@@ -13,11 +13,11 @@ Documentation for [NeuralGraphPDE](https://github.com/MilkshakeForReal/NeuralGra
 
 ```@example demo
 using NeuralGraphPDE, GraphNeuralNetworks, Random, Lux
-g = rand_graph(5, 4, bidirected = false)
+g = rand_graph(5, 4; bidirected=false)
 x = randn(3, g.num_nodes)
 
 # create layer
-l = ExplicitGCNConv(3 => 5, initialgraph = g)
+l = ExplicitGCNConv(3 => 5; initialgraph=g)
 
 # setup layer
 rng = Random.default_rng()
@@ -29,7 +29,7 @@ ps, st = Lux.setup(rng, l)
 y, st = l(x, ps, st)    # you don't need to feed a graph explicitly
 
 #change the graph
-new_g = rand_graph(5, 7, bidirected = false)
+new_g = rand_graph(5, 7; bidirected=false)
 st = updategraph(st, new_g)
 
 y, st = l(x, ps, st)
@@ -38,12 +38,10 @@ y, st = l(x, ps, st)
   - You can omit the keyword argument `initalgraph` at initialization, and then call `updategraph` on `st` to put the graph in it. All gnn layers can work smoothly with other layers defined by `Lux`.
 
 ```@example demo
-g = rand_graph(5, 4, bidirected = false)
+g = rand_graph(5, 4; bidirected=false)
 x = randn(3, g.num_nodes)
 
-model = Chain(Dense(3 => 5),
-              ExplicitGCNConv(5 => 5),
-              ExplicitGCNConv(5 => 3))  # you don't need to use `g` for initalization
+model = Chain(Dense(3 => 5), ExplicitGCNConv(5 => 5), ExplicitGCNConv(5 => 3))  # you don't need to use `g` for initalization
 # setup layer
 rng = Random.default_rng()
 Random.seed!(rng, 0)
