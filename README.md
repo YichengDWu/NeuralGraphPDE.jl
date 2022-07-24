@@ -10,7 +10,7 @@ This package is based on [GraphNeuralNetwork.jl](https://github.com/CarloLucibel
 
 The goal is to extend Neural (Graph) ODE to Neural Graph PDE (WIP). Be aware of potential breaking changes.
 
-This library will focus on (only a few equivariant) GNNs related to PDEs. This is not a general GNN package. But you can write any custom convolutional layers if you want.
+This library will focus on (only a few equivariant) GNNs related to PDEs. This is not a general GNN package. Although you can write any custom convolutional layers if you want.
 
 ## References
 
