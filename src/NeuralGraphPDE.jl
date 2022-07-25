@@ -4,6 +4,7 @@ using Lux, GraphNeuralNetworks, NNlib, NNlibCUDA
 using Lux: AbstractExplicitContainerLayer, AbstractExplicitLayer, glorot_normal,
            glorot_uniform, ones32, zeros32, AbstractRNG, applyactivation, elementwise_add
 using GraphNeuralNetworks: ADJMAT_T
+using Graphs
 using Statistics: mean
 using Functors
 
@@ -14,7 +15,7 @@ include("utils.jl")
 include("layers.jl")
 
 export AbstractGNNLayer, AbstractGNNContainerLayer
-export ExplicitEdgeConv, ExplicitGCNConv, VMHConv, MPPDEConv, GNOConv
+export ExplicitEdgeConv, ExplicitGCNConv, VMHConv, MPPDEConv, GNOConv, SpectralConv
 export updategraph
 
 end

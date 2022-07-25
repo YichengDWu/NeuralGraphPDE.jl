@@ -151,26 +151,60 @@ using SafeTestsets
 
             @test size(y) == (out_chs, gh.num_nodes)
         end
+
+        @testset "SpectralConv" begin
+            s = SpectralConv(100)
+
+            rng = Random.default_rng()
+            ps, st = Lux.setup(rng, s)
+
+            x = LinRange{Float32}(0, 2π, 101)[2:end]
+            @test sum(abs2, s(sin.(x), ps, st)[1] .- cos.(x)) < 1.0f-3
+            @test sum(abs2, s(cos.(x), ps, st)[1] .+ sin.(x)) < 1.0f-3
+        end
     end
 end
 
-@testset "utilities" begin @testset "updategraph" begin
-    g = rand_graph(5, 4; bidirected=false)
-    x = randn(3, g.num_nodes)
+@testset "utilities" begin
+    @testset "updategraph" begin
+        g = rand_graph(5, 4; bidirected=false)
+        x = randn(3, g.num_nodes)
 
-    l = ExplicitGCNConv(3 => 5; initialgraph=g)
+        l = ExplicitGCNConv(3 => 5; initialgraph=g)
 
-    rng = Random.default_rng()
-    Random.seed!(rng, 0)
+        rng = Random.default_rng()
+        Random.seed!(rng, 0)
 
-    ps, st = Lux.setup(rng, l)
-    new_g = rand_graph(5, 7; bidirected=false)
-    new_st = updategraph(st, new_g)
-    @test new_st.graph === new_g
+        ps, st = Lux.setup(rng, l)
+        new_g = rand_graph(5, 7; bidirected=false)
+        new_st = updategraph(st, new_g)
+        @test new_st.graph === new_g
 
-    model = Chain(ExplicitGCNConv(3 => 5; initialgraph=g),
-                  ExplicitGCNConv(5 => 5; initialgraph=g))
-    ps, st = Lux.setup(rng, model)
-    new_st = updategraph(st, new_g)
-    @test new_st.layer_1.graph === new_st.layer_2.graph === new_g
-end end
+        model = Chain(ExplicitGCNConv(3 => 5; initialgraph=g),
+                      ExplicitGCNConv(5 => 5; initialgraph=g))
+        ps, st = Lux.setup(rng, model)
+        new_st = updategraph(st, new_g)
+        @test new_st.layer_1.graph === new_st.layer_2.graph === new_g
+    end
+
+    @testset "graph data" begin
+        g = rand_graph(5, 4; bidirected=false)
+        x = randn(3, g.num_nodes)
+
+        l = ExplicitGCNConv(3 => 5; initialgraph=g)
+
+        rng = Random.default_rng()
+        Random.seed!(rng, 0)
+
+        ps, st = Lux.setup(rng, l)
+        ndata = rand(3, g.num_nodes)
+        new_st = updategraph(st; ndata=ndata)
+        @test new_st.graph.ndata.x === ndata
+
+        model = Chain(ExplicitGCNConv(3 => 5; initialgraph=g),
+                      ExplicitGCNConv(5 => 5; initialgraph=g))
+        ps, st = Lux.setup(rng, model)
+        new_st = updategraph(st; ndata=ndata)
+        @test new_st.layer_1.graph.ndata.x === new_st.layer_2.graph.ndata.x === ndata
+    end
+end

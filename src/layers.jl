@@ -338,7 +338,7 @@ Convolutional layer from [Message Passing Neural PDE Solvers](https://arxiv.org/
 	\mathbf{h}_i'&=\psi (\mathbf{h}_i,\mathbf{m}_i,\theta )\\
 \end{aligned}
 ```
-					
+
 # Arguments
 - `ϕ`: The neural network for the message function.
 - `ψ`: The neural network for the update function.
@@ -352,7 +352,7 @@ Convolutional layer from [Message Passing Neural PDE Solvers](https://arxiv.org/
 # Parameters
 - Parameters of `ϕ`.
 - Parameters of `ψ`.
-																
+
 # States
 - `graph`: `GNNGraph` for which `graph.gdata` represents the graph level features of the underlying PDE. All features in `graph.gdata`
     should be a matrices of the size `(num_feats, num_graphs)`. You can store `u`(`x`) in `graph.ndata` or `u_j-u_i`(`x_jx_i`) in `graph.edata`.
@@ -542,4 +542,74 @@ end
 
 @inline function _linearmap(x::AbstractMatrix, m::AbstractMatrix, ps, ::Val{false})
     return elementwise_add(ps.weight * x, m)
+end
+
+"""
+    SpectralConv(n::Int)
+
+Compute the Fourier differentiation of 1D periodic functions evenly sampled on [0,2π]. This is
+only a toy function.
+
+# Arguments
+
+  - `n`: The number of sampled points.
+
+# Inputs
+
+  - `u`: Discret function values on ``2jπ/n``, for ``j=1,2,...,n``.
+
+# Returns
+
+  - The derivative of `u`.
+
+# Parameters
+
+  - None.
+
+# States
+
+  - `graph`: A comple graph `g` of the type `GNNGraph`, where `g.edata.e` is `x_i-x_j`.
+
+# Examples
+
+```julia
+s = SpectralConv(100)
+
+rng = Random.default_rng()
+ps, st = Lux.setup(rng, s)
+
+x = LinRange{Float32}(0, 2π, 101)[2:end]
+s(sin.(x), ps, st)[1] .- cos.(x)
+s(cos.(x), ps, st)[1] .+ sin.(x)
+```
+"""
+struct SpectralConv <: AbstractGNNLayer
+    n::Int
+end
+
+Base.show(io::IO, s::SpectralConv) = print("SpectralConv($(s.n))")
+
+function initialstates(rng::AbstractRNG, l::SpectralConv)
+    g = complete_digraph(l.n)
+    x = collect(LinRange{Float32}(0, 2π, l.n + 1))[2:end]
+    s = src.([e for e in edges(g)])
+    t = dst.([e for e in edges(g)])
+    diff = x[t] .- x[s]
+    g = GNNGraph(g; edata=reshape(diff, 1, :))
+
+    return (graph=g,)
+end
+
+initialparameters(rng::AbstractRNG, l::SpectralConv) = NamedTuple()
+
+function (l::SpectralConv)(x::AbstractMatrix, ps, st::NamedTuple)
+    function message(xi, xj, e)
+        return cos.(e .* l.n / 2) .* cot.(e ./ 2) ./ 2 .* xj
+    end
+    return propagate(message, st.graph, +; xj=x, e=st.graph.edata.e), st
+end
+
+function (l::SpectralConv)(x::AbstractVector, ps, st::NamedTuple)
+    x′, st = l(reshape(x, 1, :), ps, st)
+    return vec(x′), st
 end
