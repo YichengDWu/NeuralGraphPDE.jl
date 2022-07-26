@@ -551,7 +551,7 @@ Compute the Fourier differentiation of a 1D periodic function evenly sampled on 
 including one of the endpoints. This is only a toy function and not the most effecient approch.
 
 ```math
-    u_i =\frac{1}{2} \cos \left(\frac{\left(x_{i}-x_{j}\right) n}{2}\right) \cot \left(\frac{x_{i}-x_{j}}{2}\right) u_{j}
+    u_i =\frac{1}{2} \sum_{j}{\cos \left(\frac{\left(x_{i}-x_{j}\right) n}{2}\right) \cot \left(\frac{x_{i}-x_{j}}{2}\right) u_{j}}
 ```
 
 # Arguments
