@@ -544,11 +544,15 @@ end
     return elementwise_add(ps.weight * x, m)
 end
 
-"""
+@doc raw"""
     SpectralConv(n::Int)
 
 Compute the Fourier differentiation of 1D periodic functions evenly sampled on [0,2π]. This is
 only a toy function.
+
+```math
+    u_i =\frac{1}{2} \cos \left(\frac{\left(x_{i}-x_{j}\right) n}{2}\right) \cot \left(\frac{x_{i}-x_{j}}{2}\right) u_{j}
+```
 
 # Arguments
 
@@ -573,14 +577,55 @@ only a toy function.
 # Examples
 
 ```julia
-s = SpectralConv(100)
+julia> using Lux, Random
 
-rng = Random.default_rng()
-ps, st = Lux.setup(rng, s)
+julia> s = SpectralConv(100);
 
-x = LinRange{Float32}(0, 2π, 101)[2:end]
-s(sin.(x), ps, st)[1] .- cos.(x)
-s(cos.(x), ps, st)[1] .+ sin.(x)
+julia> rng = Random.default_rng();
+julia> ps, st = Lux.setup(rng, s);
+
+julia> x = LinRange(0, 2π, 101)[2:end];
+julia> s(sin.(x), ps, st)[1] .- cos.(x)
+100-element Vector{Float64}:
+ -2.9976021664879227e-15
+  4.440892098500626e-15
+ -3.885780586188048e-15
+  4.9960036108132044e-15
+ -1.1102230246251565e-15
+ -6.328271240363392e-15
+  6.994405055138486e-15
+  5.551115123125783e-16
+  0.0
+  ⋮
+ -1.892930256985892e-13
+  1.8640644583456378e-13
+ -1.2012613126444194e-13
+  8.526512829121202e-14
+ -6.405986852087153e-14
+  4.451994328746878e-14
+ -2.631228568361621e-14
+  1.509903313490213e-14
+
+julia> s(cos.(x), ps, st)[1] .+ sin.(x)
+100-element Vector{Float64}:
+  1.9442780718748054e-14
+ -3.552713678800501e-14
+  4.246603069191224e-15
+ -8.715250743307479e-15
+  1.1934897514720433e-14
+ -2.7533531010703882e-14
+  2.6867397195928788e-14
+ -1.176836406102666e-14
+  6.5503158452884236e-15
+  ⋮
+  4.048983370807946e-13
+ -4.0362158060247566e-13
+  2.742805982336449e-13
+ -2.53408405370692e-13
+  2.479405569744131e-13
+ -2.366440376988521e-13
+  2.0448920334814602e-13
+ -6.064106189943799e-14
 ```
 """
 struct SpectralConv <: AbstractGNNLayer
@@ -591,7 +636,7 @@ Base.show(io::IO, s::SpectralConv) = print("SpectralConv($(s.n))")
 
 function initialstates(rng::AbstractRNG, l::SpectralConv)
     g = complete_digraph(l.n)
-    x = collect(LinRange{Float32}(0, 2π, l.n + 1))[2:end]
+    x = collect(LinRange(0, 2π, l.n + 1))[2:end]
     s = src.([e for e in edges(g)])
     t = dst.([e for e in edges(g)])
     diff = x[t] .- x[s]
