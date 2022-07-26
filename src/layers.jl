@@ -547,7 +547,7 @@ end
 @doc raw"""
     SpectralConv(n::Int)
 
-Compute the Fourier differentiation of a 1D periodic function evenly sampled on [0,2π], not
+Compute the Fourier differentiation of a 1D periodic function evenly sampled on ``[0,2π]``, not
 including one of the endpoints. This is only a toy function and not the most effecient approch.
 
 ```math
