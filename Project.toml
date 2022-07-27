@@ -1,7 +1,7 @@
 name = "NeuralGraphPDE"
 uuid = "dc0c328b-2f26-4c4e-a741-3d78bb01adf9"
 authors = ["MilkshakeForReal <yicheng.wu@ucalgary.ca> and contributors"]
-version = "0.1.8"
+version = "0.1.9"
 
 [deps]
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
