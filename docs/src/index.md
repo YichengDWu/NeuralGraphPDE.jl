@@ -12,7 +12,7 @@ Documentation for [NeuralGraphPDE](https://github.com/MilkshakeForReal/NeuralGra
     is stored in `st`, not in the layer. They are decoupled in the sense that you can easily update or change the graph by changing `st`:
 
 ```@example demo
-using NeuralGraphPDE, GraphNeuralNetworks, Random, Lux
+using NeuralGraphPDE, Random, Lux
 g = rand_graph(5, 4; bidirected=false)
 x = randn(3, g.num_nodes)
 
