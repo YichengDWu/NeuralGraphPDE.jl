@@ -12,7 +12,7 @@ Specifically, we will learn the operator from the inital condition to the soluti
 ## Load the packages
 
 ```@example ngpde
-using DataDeps, MLUtils, GraphNeuralNetworks, Fetch
+using DataDeps, MLUtils, Fetch
 using NeuralGraphPDE, Lux, Optimisers, Random
 using CUDA, JLD2
 using SciMLSensitivity, DifferentialEquations

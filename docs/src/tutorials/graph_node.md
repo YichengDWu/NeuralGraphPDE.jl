@@ -5,7 +5,7 @@ This tutorial is adapted from [SciMLSensitivity](https://sensitivity.sciml.ai/de
 ## Load the packages
 
 ```@example gnode
-using GraphNeuralNetworks, NeuralGraphPDE, DifferentialEquations
+using NeuralGraphPDE, DifferentialEquations
 using Lux, NNlib, Optimisers, Zygote, Random
 using ComponentArrays, OneHotArrays
 using SciMLSensitivity
@@ -74,13 +74,12 @@ diffeqsol_to_array(x::ODESolution) = dropdims(Array(x); dims=3)
 
 ```@example gnode
 function create_model()
-    node_chain = Chain(ExplicitGCNConv(nhidden => nhidden, relu),
-                       ExplicitGCNConv(nhidden => nhidden, relu))
+    node_chain = Chain(GCNConv(nhidden => nhidden, relu), GCNConv(nhidden => nhidden, relu))
 
     node = NeuralODE(node_chain; save_everystep=false, reltol=1e-3, abstol=1e-3,
                      save_start=false)
 
-    model = Chain(ExplicitGCNConv(nin => nhidden, relu), node, diffeqsol_to_array,
+    model = Chain(GCNConv(nin => nhidden, relu), node, diffeqsol_to_array,
                   Dense(nhidden, nout))
 
     rng = Random.default_rng()
