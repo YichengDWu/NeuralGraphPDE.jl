@@ -17,7 +17,7 @@ g = rand_graph(5, 4; bidirected=false)
 x = randn(3, g.num_nodes)
 
 # create layer
-l = ExplicitGCNConv(3 => 5; initialgraph=g)
+l = GCNConv(3 => 5; initialgraph=g)
 
 # setup layer
 rng = Random.default_rng()
@@ -41,7 +41,7 @@ y, st = l(x, ps, st)
 g = rand_graph(5, 4; bidirected=false)
 x = randn(3, g.num_nodes)
 
-model = Chain(Dense(3 => 5), ExplicitGCNConv(5 => 5), ExplicitGCNConv(5 => 3))  # you don't need to use `g` for initalization
+model = Chain(Dense(3 => 5), GCNConv(5 => 5), GCNConv(5 => 3))  # you don't need to use `g` for initalization
 # setup layer
 rng = Random.default_rng()
 Random.seed!(rng, 0)
