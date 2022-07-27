@@ -65,4 +65,3 @@ y, st = model(x, ps, st)
 
  1. We assume all graphs have the same structure.
  2. The input must be a matrix or a named tuple of matrices.
- 3. 
