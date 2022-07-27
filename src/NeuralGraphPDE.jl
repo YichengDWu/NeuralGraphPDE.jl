@@ -2,26 +2,13 @@ module NeuralGraphPDE
 
 using Reexport
 @reexport using GraphNeuralNetworks.GNNGraphs
-@reexport import GraphNeuralNetworks: reduce_nodes,
-                                        reduce_edges,
-                                        softmax_nodes,
-                                        softmax_edges,
-                                        broadcast_nodes,
-                                        broadcast_edges,
-                                        softmax_edge_neighbors,
+@reexport import GraphNeuralNetworks: reduce_nodes, reduce_edges, softmax_nodes,
+                                      softmax_edges, broadcast_nodes, broadcast_edges,
+                                      softmax_edge_neighbors,
 
-                                        # msgpass
-                                        apply_edges,
-                                        aggregate_neighbors,
-                                        propagate,
-                                        copy_xj,
-                                        copy_xi,
-                                        xi_dot_xj,
-                                        e_mul_xj,
-                                        w_mul_xj,
-
-                                        ADJMAT_T
-
+# msgpass
+                                      apply_edges, aggregate_neighbors, propagate, copy_xj,
+                                      copy_xi, xi_dot_xj, e_mul_xj, w_mul_xj, ADJMAT_T
 
 using Lux, NNlib, NNlibCUDA
 using Lux: AbstractExplicitContainerLayer, AbstractExplicitLayer, glorot_normal,

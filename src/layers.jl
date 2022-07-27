@@ -174,30 +174,32 @@ function parameterlength(d::GCNConv{bias}) where {bias}
     return bias ? d.out_chs * (d.in_chs + 1) : d.out_chs * d.in_chs
 end
 
-function GCNConv(in_chs::Int, out_chs::Int, activation=identity;
-                         initialgraph=initialgraph, init_weight=glorot_normal,
-                         init_bias=zeros32, bias::Bool=true, add_self_loops::Bool=true,
-                         use_edge_weight::Bool=false)
+function GCNConv(in_chs::Int, out_chs::Int, activation=identity; initialgraph=initialgraph,
+                 init_weight=glorot_normal, init_bias=zeros32, bias::Bool=true,
+                 add_self_loops::Bool=true, use_edge_weight::Bool=false)
     activation = NNlib.fast_act(activation)
     initialgraph = wrapgraph(initialgraph)
-    return GCNConv{bias, typeof(activation), typeof(init_weight), typeof(init_bias)
-                           }(initialgraph, in_chs, out_chs, activation, init_weight,
-                             init_bias, add_self_loops, use_edge_weight)
+    return GCNConv{bias, typeof(activation), typeof(init_weight), typeof(init_bias)}(initialgraph,
+                                                                                     in_chs,
+                                                                                     out_chs,
+                                                                                     activation,
+                                                                                     init_weight,
+                                                                                     init_bias,
+                                                                                     add_self_loops,
+                                                                                     use_edge_weight)
 end
 
 function GCNConv(ch::Pair{Int, Int}, activation=identity; initialgraph=initialgraph,
-                         init_weight=glorot_uniform, init_bias=zeros32, bias::Bool=true,
-                         add_self_loops=true, use_edge_weight=false)
+                 init_weight=glorot_uniform, init_bias=zeros32, bias::Bool=true,
+                 add_self_loops=true, use_edge_weight=false)
     return GCNConv(first(ch), last(ch), activation; initialgraph=initialgraph,
-                           init_weight=init_weight, init_bias=init_bias, bias=bias,
-                           add_self_loops=add_self_loops, use_edge_weight=use_edge_weight)
+                   init_weight=init_weight, init_bias=init_bias, bias=bias,
+                   add_self_loops=add_self_loops, use_edge_weight=use_edge_weight)
 end
 
 function (l::GCNConv)(x::AbstractMatrix{T}, ps, st::NamedTuple,
-                              edge_weight::EW=nothing) where {T,
-                                                              EW <:
-                                                              Union{Nothing, AbstractVector
-                                                                    }}
+                      edge_weight::EW=nothing) where {T,
+                                                      EW <: Union{Nothing, AbstractVector}}
     g = st.graph
     @assert !(g isa GNNGraph{<:ADJMAT_T} && edge_weight !== nothing) "Providing external edge_weight is not yet supported for adjacency matrix graphs"
 

@@ -178,8 +178,7 @@ end
         new_st = updategraph(st, new_g)
         @test new_st.graph === new_g
 
-        model = Chain(GCNConv(3 => 5; initialgraph=g),
-                      GCNConv(5 => 5; initialgraph=g))
+        model = Chain(GCNConv(3 => 5; initialgraph=g), GCNConv(5 => 5; initialgraph=g))
         ps, st = Lux.setup(rng, model)
         new_st = updategraph(st, new_g)
         @test new_st.layer_1.graph === new_st.layer_2.graph === new_g
@@ -199,8 +198,7 @@ end
         new_st = updategraph(st; ndata=ndata)
         @test new_st.graph.ndata.x === ndata
 
-        model = Chain(GCNConv(3 => 5; initialgraph=g),
-                      GCNConv(5 => 5; initialgraph=g))
+        model = Chain(GCNConv(3 => 5; initialgraph=g), GCNConv(5 => 5; initialgraph=g))
         ps, st = Lux.setup(rng, model)
         new_st = updategraph(st; ndata=ndata)
         @test new_st.layer_1.graph.ndata.x === new_st.layer_2.graph.ndata.x === ndata
