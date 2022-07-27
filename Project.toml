@@ -25,13 +25,14 @@ Graphs = "1"
 Lux = "0.4"
 NNlib = "0.8"
 NNlibCUDA = "0.2"
+Reexport = "1"
 julia = "1.7"
 
 [extras]
+MLUtils = "f1d291b0-491e-4a28-83b9-f70985020b54"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
-MLUtils = "f1d291b0-491e-4a28-83b9-f70985020b54"
 
 [targets]
-test = ["Test", "Random", "SafeTestsets","MLUtils"]
+test = ["Test", "Random", "SafeTestsets", "MLUtils"]
