@@ -19,3 +19,4 @@ This library will focus on (only a few equivariant) GNNs related to PDEs. This i
  3. Chamberlain B, Rowbottom J, Gorinova M I, et al. Grand: Graph neural diffusion[C]. International Conference on Machine Learning. PMLR, 2021: 1407-1418.
  4. Brandstetter J, Worrall D, Welling M. Message passing neural PDE solvers[J]. arXiv preprint arXiv:2202.03376, 2022.
  5. Li Z, Kovachki N, Azizzadenesheli K, et al. Neural operator: Graph kernel network for partial differential equations[J]. arXiv preprint arXiv:2003.03485, 2020.
+ 6. Toshev, Artur, et al. "On the Relationships between Graph Neural Networks for the Simulation of Physical Systems and Classical Numerical Methods." ICML 2022 2nd AI for Science Workshop. 2022.
