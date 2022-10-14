@@ -8,7 +8,7 @@ makedocs(; modules=[NeuralGraphPDE],
          repo="https://github.com/YichengDWu/NeuralGraphPDE.jl/blob/{commit}{path}#{line}",
          sitename="NeuralGraphPDE.jl",
          format=Documenter.HTML(; prettyurls=get(ENV, "CI", "false") == "true",
-                                canonical="https://MilkshakeForReal.github.io/NeuralGraphPDE.jl",
+                                canonical="https://YichengDWu.github.io/NeuralGraphPDE.jl",
                                 edit_link="main", assets=String[]), doctest=false,
          strict=[
              :doctest,
