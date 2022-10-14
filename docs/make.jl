@@ -5,7 +5,7 @@ DocMeta.setdocmeta!(NeuralGraphPDE, :DocTestSetup, :(using NeuralGraphPDE); recu
 
 makedocs(; modules=[NeuralGraphPDE],
          authors="MilkshakeForReal <yicheng.wu@ucalgary.ca> and contributors",
-         repo="https://github.com/MilkshakeForReal/NeuralGraphPDE.jl/blob/{commit}{path}#{line}",
+         repo="https://github.com/YichengDWu/NeuralGraphPDE.jl/blob/{commit}{path}#{line}",
          sitename="NeuralGraphPDE.jl",
          format=Documenter.HTML(; prettyurls=get(ENV, "CI", "false") == "true",
                                 canonical="https://MilkshakeForReal.github.io/NeuralGraphPDE.jl",
