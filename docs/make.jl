@@ -32,4 +32,4 @@ makedocs(; modules=[NeuralGraphPDE],
              "Developer Documentation" => "devdoc.md",
          ])
 
-deploydocs(; repo="github.com/MilkshakeForReal/NeuralGraphPDE.jl", devbranch="main")
+deploydocs(; repo="github.com/YichengDWu/NeuralGraphPDE.jl", devbranch="main")
