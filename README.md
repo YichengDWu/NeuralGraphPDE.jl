@@ -8,7 +8,7 @@
 
 This package is based on [GraphNeuralNetwork.jl](https://github.com/CarloLucibello/GraphNeuralNetworks.jl) and [Lux.jl](https://github.com/avik-pal/Lux.jl).
 
-The goal is to extend Neural (Graph) ODE to Neural Graph PDE (WIP).
+The goal is to extend Neural (Graph) ODE to Neural Graph PDE (experimental).
 
 Technically, it has become a general framework for graph neural networks.
 
