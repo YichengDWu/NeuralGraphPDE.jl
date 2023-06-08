@@ -28,7 +28,8 @@ MLUtils = "0.2, 0.3"
 NNlib = "0.8"
 NNlibCUDA = "0.2"
 Reexport = "1"
-julia = "1.7"
+julia = "1.8"
+ChainRulesCore = "1"
 
 [extras]
 MLUtils = "f1d291b0-491e-4a28-83b9-f70985020b54"
