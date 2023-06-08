@@ -394,7 +394,7 @@ function (l::MPPDEConv)(x::AbstractArray, ps, st::NamedTuple)
     num_graphs = g.num_graphs
     s = g.ndata
     e = g.edata
-    θ = reduce(vcat, values(st.graph.gdata); init=similar(x, 0, num_graphs))
+    θ = ChainRulesCore.@ignore_derivatives reduce(vcat, values(st.graph.gdata); init=similar(x, 0, num_graphs))
 
     nkeys = keys(s)
     initarray = similar(x, 0, num_edges)
@@ -415,7 +415,7 @@ function (l::MPPDEConv)(x::AbstractArray, ps, st::NamedTuple)
     xs = merge((; preservedname=x), s)
     m = propagate(message, g, l.aggr; xi=xs, xj=xs, e=e)
 
-    y, st_ψ = l.ψ(vcat(x, m, repeat(θ; inner=(1, num_nodes ÷ num_graphs))), ps.ψ, st.ψ)
+    y, st_ψ = l.ψ(vcat(x, m, ChainRulesCore.@ignore_derivatives(repeat(θ; inner=(1, num_nodes ÷ num_graphs)))), ps.ψ, st.ψ)
     st = merge(st, (; ψ=st_ψ))
 
     return y, st
