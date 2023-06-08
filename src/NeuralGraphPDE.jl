@@ -16,6 +16,7 @@ using Lux: AbstractExplicitContainerLayer, AbstractExplicitLayer, glorot_normal,
 using Graphs
 using Statistics: mean
 using Functors: fmap
+using ChainRulesCore
 
 import Lux: initialparameters, parameterlength, statelength, Chain, applychain,
             initialstates
