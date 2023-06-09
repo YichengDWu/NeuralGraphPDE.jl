@@ -397,22 +397,22 @@ function (l::MPPDEConv)(x::AbstractArray, ps, st::NamedTuple)
     θ = ChainRulesCore.@ignore_derivatives reduce(vcat, values(st.graph.gdata); init=similar(x, 0, num_graphs))
 
     nkeys = keys(s)
-    initarray = similar(x, 0, num_edges)
+    #initarray = similar(x, 0, num_edges)
 
     function message(xi, xj, e)
-        di, dj = xi[nkeys], xj[nkeys]
-        di, dj = reduce(vcat, values(di); init=initarray),
-                 reduce(vcat, values(dj); init=initarray)
+        # di, dj = xi[nkeys], xj[nkeys]
+        # di, dj = reduce(vcat, values(di); init=initarray),
+        #          reduce(vcat, values(dj); init=initarray)
 
-        e = reduce(vcat, values(e); init=initarray)
+        e = vcat(values(e))  # reduce(vcat, values(e); init=initarray)
         hi, hj = xi.preservedname, xj.preservedname
-        m, st_ϕ = l.ϕ(vcat(hi, hj, di .- dj, e,
-                           repeat(θ; inner=(1, num_edges ÷ num_graphs))), ps.ϕ, st.ϕ)
+        m, st_ϕ = l.ϕ(vcat(hi, hj, e,
+                            ChainRulesCore.@ignore_derivatives(repeat(θ; inner=(1, num_edges ÷ num_graphs)))), ps.ϕ, st.ϕ)
         st = merge(st, (; ϕ=st_ϕ))
         return m
     end
 
-    xs = merge((; preservedname=x), s)
+    xs = (; preservedname=x) #  merge((; preservedname=x), s)
     m = propagate(message, g, l.aggr; xi=xs, xj=xs, e=e)
 
     y, st_ψ = l.ψ(vcat(x, m, ChainRulesCore.@ignore_derivatives(repeat(θ; inner=(1, num_nodes ÷ num_graphs)))), ps.ψ, st.ψ)
