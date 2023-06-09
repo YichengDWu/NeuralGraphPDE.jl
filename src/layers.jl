@@ -404,7 +404,7 @@ function (l::MPPDEConv)(x::AbstractArray, ps, st::NamedTuple)
         # di, dj = reduce(vcat, values(di); init=initarray),
         #          reduce(vcat, values(dj); init=initarray)
 
-        e = vcat(values(e))  # reduce(vcat, values(e); init=initarray)
+        e = vcat(values(e)...)  # reduce(vcat, values(e); init=initarray)
         hi, hj = xi.preservedname, xj.preservedname
         m, st_ϕ = l.ϕ(vcat(hi, hj, e,
                             ChainRulesCore.@ignore_derivatives(repeat(θ; inner=(1, num_edges ÷ num_graphs)))), ps.ϕ, st.ϕ)
