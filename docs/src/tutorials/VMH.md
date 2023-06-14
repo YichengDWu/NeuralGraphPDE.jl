@@ -7,7 +7,7 @@ We will use [`VMHConv`](@ref) to learn the dynamics of the convection-diffusion 
 \frac{\partial u(x, y, t)}{\partial t}=0.25 \nabla^{2} u(x, y, t)-\mathbf{v} \cdot \nabla u(x, y, t).
 ```
 
-Specifically, we will learn the operator from the inital condition to the solution on the given temporal and spatial domain.
+Specifically, we will learn the operator from the initial condition to the solution on the given temporal and spatial domain.
 
 ## Load the packages
 
@@ -50,7 +50,7 @@ end
 train_data, test_data, dt_train, dt_test, tspan_train, tspan_test = get_data()
 ```
 
-The training data contrains 24 simulations on the time interval ``[0,0.2]``. Simulations are obeserved on different 2D grids with 3000 points.
+The training data contains 24 simulations on the time interval ``[0,0.2]``. Simulations are observed on different 2D grids with 3000 points.
 Neighbors for each node were selected by applying Delaunay triangulation to the measurement positions. Two nodes were considered to be
 neighbors if they lie on the same edge of at least one triangle.
 
