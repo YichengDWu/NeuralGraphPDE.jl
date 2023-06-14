@@ -116,7 +116,7 @@ end
                     initialgraph = initialgraph, init_weight = glorot_normal,
                     init_bias = zeros32)
 
-Same as the one in GraphNeuralNetworks.jl but with exiplicit paramters.
+Same as the one in GraphNeuralNetworks.jl but with explicit parameters.
 
 # Arguments
 

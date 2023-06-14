@@ -41,7 +41,7 @@ y, st = l(x, ps, st)
 g = rand_graph(5, 4; bidirected=false)
 x = randn(3, g.num_nodes)
 
-model = Chain(Dense(3 => 5), GCNConv(5 => 5), GCNConv(5 => 3))  # you don't need to use `g` for initalization
+model = Chain(Dense(3 => 5), GCNConv(5 => 5), GCNConv(5 => 3))  # you don't need to use `g` for initialization
 # setup layer
 rng = Random.default_rng()
 Random.seed!(rng, 0)
@@ -59,7 +59,7 @@ y, st = model(x, ps, st)
      2. You can modify the graph inside a layer and return it.
      3. Multigraphs. A layer can take in any number of graphs in `st`.
 
-  - Trainable node embeddings and nontrainable features are seperately stored in `x` and `st.graph`.
+  - Trainable node embeddings and nontrainable features are separately stored in `x` and `st.graph`.
 
 ## Limitations
 
