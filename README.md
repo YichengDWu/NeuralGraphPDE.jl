@@ -20,3 +20,16 @@ Technically, it has become a general framework for graph neural networks.
  4. Brandstetter J, Worrall D, Welling M. Message passing neural PDE solvers[J]. arXiv preprint arXiv:2202.03376, 2022.
  5. Li Z, Kovachki N, Azizzadenesheli K, et al. Neural operator: Graph kernel network for partial differential equations[J]. arXiv preprint arXiv:2003.03485, 2020.
  6. Toshev, Artur, et al. "On the Relationships between Graph Neural Networks for the Simulation of Physical Systems and Classical Numerical Methods." ICML 2022 2nd AI for Science Workshop. 2022.
+
+
+## Current Status
+**This package is no longer actively maintained.**
+
+### What does this mean?
+
+- No new features will be added, and issues will not be actively triaged or resolved.
+- The repository will remain available as an archive, and the code can still be accessed and used.
+
+### Can I still use the package?
+
+Yes, you can continue to use the package, but please do so with caution. As it won’t be updated, it may not work in future versions of dependent technologies.
