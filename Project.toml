@@ -19,6 +19,7 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
 CUDA = "3, 4"
+ChainRulesCore = "1"
 DifferentialEquations = "7"
 Functors = "0.2, 0.3"
 GraphNeuralNetworks = "0.4, 0.5, 0.6"
@@ -28,8 +29,8 @@ MLUtils = "0.2, 0.3"
 NNlib = "0.8"
 NNlibCUDA = "0.2"
 Reexport = "1"
+Statistics = "1"
 julia = "1.8"
-ChainRulesCore = "1"
 
 [extras]
 MLUtils = "f1d291b0-491e-4a28-83b9-f70985020b54"
